@@ -20,6 +20,7 @@ func statusHandler(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(map[string]string{"error": "Method not allowed"})
 		return
 	}
+
 	json.NewEncoder(w).Encode(map[string]string{"status": "ok", "server": "coco-sml"})
 }
 

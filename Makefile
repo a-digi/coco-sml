@@ -25,3 +25,11 @@ clean:
 .PHONY: stop
 stop:
 	./app/coco-sml stop
+
+.PHONY: build-frontend
+build-frontend:
+	cd src/front/app && npm install && npm run build
+
+.PHONY: serve-frontend
+serve-frontend:
+	cd src/front/app && npm run start

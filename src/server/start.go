@@ -7,27 +7,8 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
-	"syscall"
+	"github.com/a-digi/coco-sml/src/server"
 )
-
-func isProcessRunning(pid int) bool {
-	process, err := os.FindProcess(pid)
-	if err != nil {
-		return false
-	}
-	// Signal 0 prüft nur, ob der Prozess existiert (Unix)
-	err = process.Signal(syscall.Signal(0))
-	return err == nil
-}
-
-func writePIDFile(pidFile string) error {
-	pid := os.Getpid()
-	return os.WriteFile(pidFile, []byte(strconv.Itoa(pid)), 0644)
-}
-
-func removePIDFile(pidFile string) {
-	_ = os.Remove(pidFile)
-}
 
 // StartServer starts the HTTP API server
 func StartServer(addr string) {
@@ -42,14 +23,14 @@ func StartServer(addr string) {
 func StartServerWithConfig(cfg *Config) {
 	pidFile := filepath.Join(cfg.DataFolderPath, "server.pid")
 	if data, err := os.ReadFile(pidFile); err == nil {
-		if pid, err := strconv.Atoi(string(data)); err == nil && isProcessRunning(pid) {
+		if pid, err := strconv.Atoi(string(data)); err == nil && server.IsProcessRunning(pid) {
 			log.Fatalf("Server is already running with PID %d", pid)
 		}
 	}
-	if err := writePIDFile(pidFile); err != nil {
+	if err := server.WritePIDFile(pidFile); err != nil {
 		log.Fatalf("Failed to write PID file: %v", err)
 	}
-	defer removePIDFile(pidFile)
+	defer server.RemovePIDFile(pidFile)
 
 	http.HandleFunc("/v1/status", statusHandler)
 	addr := fmt.Sprintf(":%d", cfg.Port)
@@ -58,4 +39,3 @@ func StartServerWithConfig(cfg *Config) {
 		log.Fatalf("Server failed: %v", err)
 	}
 }
-

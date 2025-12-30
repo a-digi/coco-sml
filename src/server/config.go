@@ -23,11 +23,14 @@ func LoadConfig(path string) (*Config, error) {
 	}
 	defer file.Close()
 	var cfg Config
+
 	if err := json.NewDecoder(file).Decode(&cfg); err != nil {
 		return nil, err
 	}
+
 	if cfg.Port == 0 {
 		cfg.Port = 2030
 	}
+
 	return &cfg, nil
 }

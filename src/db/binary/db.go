@@ -151,6 +151,14 @@ func (s *Server) DatabaseCreate(name string, description ...string) error {
 		return err
 	}
 
+	// Check if the database directory exists, if not create it
+	dbDirPath := filepath.Join(s.DataDir, name)
+	if _, err := os.Stat(dbDirPath); os.IsNotExist(err) {
+		if err := os.MkdirAll(dbDirPath, 0755); err != nil {
+			return fmt.Errorf("could not create database directory: %w", err)
+		}
+	}
+
 	dbMetaPath := filepath.Join(s.DataDir, "databases")
 	if _, err := os.Stat(dbMetaPath); os.IsNotExist(err) {
 		file, err := os.Create(dbMetaPath)

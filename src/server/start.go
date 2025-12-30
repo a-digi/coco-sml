@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
-	"github.com/a-digi/coco-sml/src/server"
+	"github.com/a-digi/coco-sml/src/server/process"
 )
 
 // StartServer starts the HTTP API server
@@ -23,14 +23,14 @@ func StartServer(addr string) {
 func StartServerWithConfig(cfg *Config) {
 	pidFile := filepath.Join(cfg.DataFolderPath, "server.pid")
 	if data, err := os.ReadFile(pidFile); err == nil {
-		if pid, err := strconv.Atoi(string(data)); err == nil && server.IsProcessRunning(pid) {
+		if pid, err := strconv.Atoi(string(data)); err == nil && process.IsProcessRunning(pid) {
 			log.Fatalf("Server is already running with PID %d", pid)
 		}
 	}
-	if err := server.WritePIDFile(pidFile); err != nil {
+	if err := process.WritePIDFile(pidFile); err != nil {
 		log.Fatalf("Failed to write PID file: %v", err)
 	}
-	defer server.RemovePIDFile(pidFile)
+	defer process.RemovePIDFile(pidFile)
 
 	http.HandleFunc("/v1/status", statusHandler)
 	addr := fmt.Sprintf(":%d", cfg.Port)

@@ -14,48 +14,17 @@ type ResultRow map[string]interface{}
 // ExecuteSelect executes a parsed SELECT SQLQuery and returns results as a slice of maps (field -> value).
 // dataDir is the directory where tables.meta and <table>.data are stored.
 func ExecuteSelect(query *SQLQuery, dataDir string) ([]ResultRow, error) {
-
 	if query == nil {
 		return nil, errors.New("nil query")
 	}
-
-	// Load table metadata
-	metaPath := filepath.Join(dataDir, "tables.meta")
-	metaFile, err := os.Open(metaPath)
-
+	// Load table metadata using shared logic
+	tables, err := LoadTableMeta(dataDir)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to open metadata: %w", err)
+		return nil, err
 	}
-
-	defer metaFile.Close()
-	var meta struct {
-		Tables []struct {
-			Name   string
-			Fields []struct {
-				Name string
-			}
-		}
-	}
-
-	if err := gob.NewDecoder(metaFile).Decode(&meta); err != nil {
-		return nil, fmt.Errorf("failed to decode metadata: %w", err)
-	}
-
-	var tableFields []string
-
-	found := false
-
-	for _, t := range meta.Tables {
-		if t.Name == query.Table {
-			for _, f := range t.Fields {
-				tableFields = append(tableFields, f.Name)
-			}
-			found = true
-			break
-		}
-	}
-	if !found {
-		return nil, fmt.Errorf("table '%s' not found", query.Table)
+	tableFields, err := GetTableFields(tables, query.Table)
+	if err != nil {
+		return nil, err
 	}
 
 	// Open table data file (assume binary gob, e.g. <table>.data)
@@ -107,4 +76,3 @@ func ExecuteSelect(query *SQLQuery, dataDir string) ([]ResultRow, error) {
 
 	return results, nil
 }
-

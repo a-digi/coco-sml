@@ -3,6 +3,7 @@ package binary
 import (
 	"encoding/gob"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -160,4 +161,44 @@ func CreateTable(dataDir string, table Table) error {
 	}
 
 	return nil
+}
+
+// TableMeta represents the metadata for a table (name and fields).
+type TableMeta struct {
+	Name   string
+	Fields []struct {
+		Name string
+	}
+}
+
+// LoadTableMeta loads the metadata for all tables from tables.meta in the given dataDir.
+func LoadTableMeta(dataDir string) ([]TableMeta, error) {
+	metaPath := filepath.Join(dataDir, "tables.meta")
+	metaFile, err := os.Open(metaPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open metadata: %w", err)
+	}
+	defer metaFile.Close()
+	var meta struct {
+		Tables []TableMeta
+	}
+	if err := gob.NewDecoder(metaFile).Decode(&meta); err != nil {
+		return nil, fmt.Errorf("failed to decode metadata: %w", err)
+	}
+	return meta.Tables, nil
+}
+
+// GetTableFields returns the field names for a given table name from the loaded metadata.
+func GetTableFields(tables []TableMeta, tableName string) ([]string, error) {
+	for _, t := range tables {
+		if t.Name == tableName {
+			var fields []string
+			for _, f := range t.Fields {
+				fields = append(fields, f.Name)
+			}
+			return fields, nil
+		}
+	}
+
+	return nil, fmt.Errorf("table '%s' not found", tableName)
 }

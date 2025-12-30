@@ -2,7 +2,8 @@
 
 .PHONY: run
 run: build
-	./app/coco-sml start --data-dir=./data --config=config.json
+	nohup ./app/coco-sml start --data-dir=./data --config=config.json > server.log 2>&1 &
+	@echo "Server started in background. Logs: server.log"
 
 .PHONY: run-dev
 run-dev:

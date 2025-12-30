@@ -2,13 +2,10 @@
 
 .PHONY: run
 
-run:
+run-dev:
 	go run main.go config.json
 
 .PHONY: stop
-
-stop:
-	go run -e 'package main; import "github.com/a-digi/coco-sml/src/server"; func main() { server.StopServer("./data") }'
 
 # Optional: build target
 .PHONY: build

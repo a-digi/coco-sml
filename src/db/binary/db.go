@@ -1,9 +1,13 @@
 package binary
 
 import (
+	"fmt"
 	"os"
+	"path/filepath"
 	"regexp"
 	"time"
+
+	table "github.com/a-digi/coco-sml/src/db/internal/table"
 )
 
 // Server represents the server instance and its configuration.
@@ -49,6 +53,11 @@ func (s *Server) Database() (*Database, error) {
 		Name:      s.DataDir,
 		StartedAt: time.Now(),
 	}, nil
+}
+
+// LoadTableMeta loads the metadata for all tables from tables.meta in the database directory using the shared logic from table.go.
+func (db *Database) LoadTableMeta() ([]table.TableMeta, error) {
+	return table.LoadTableMeta(db.Name)
 }
 
 // ErrInvalidDatabaseName is returned when the database name contains invalid characters.

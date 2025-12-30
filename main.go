@@ -15,7 +15,7 @@ func main() {
 		return
 	}
 
-	// Nur wenn Action "start" ist, werden weitere Argumente ausgewertet
+	// Only if action is "start", further arguments are evaluated
 	if args.Action != "start" {
 		fmt.Println("No valid action provided. Use 'start' or 'stop'.")
 		return
@@ -27,15 +27,19 @@ func main() {
 		fmt.Printf("Failed to load config: %v\n", err)
 		os.Exit(1)
 	}
-	// Port überschreiben, falls per Argument gesetzt und ungleich 0
+	// Override port if provided and not zero
 	if args.Port != 0 {
 		cfg.Port = args.Port
 	}
 
-	// DataDir nur überschreiben, wenn Argument gesetzt und nicht leer
+	// Override data directory only if argument is set and not empty
 	if args.DataDir != "" {
 		cfg.DataFolderPath = args.DataDir
 	}
 
-	server.StartServerWithConfig(cfg)
+	// Start server in a separate goroutine so the terminal remains usable
+	go server.StartServerWithConfig(cfg)
+
+	// Main process stays active, but does not block the terminal
+	select {}
 }

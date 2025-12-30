@@ -185,6 +185,7 @@ func LoadTableMeta(dataDir string) ([]TableMeta, error) {
 	if err := gob.NewDecoder(metaFile).Decode(&meta); err != nil {
 		return nil, fmt.Errorf("failed to decode metadata: %w", err)
 	}
+
 	return meta.Tables, nil
 }
 

@@ -17,12 +17,15 @@ func ExecuteSelect(query *SQLQuery, dataDir string) ([]ResultRow, error) {
 	if query == nil {
 		return nil, errors.New("nil query")
 	}
+
 	// Load table metadata using shared logic
 	tables, err := LoadTableMeta(dataDir)
 	if err != nil {
 		return nil, err
 	}
+
 	tableFields, err := GetTableFields(tables, query.Table)
+
 	if err != nil {
 		return nil, err
 	}

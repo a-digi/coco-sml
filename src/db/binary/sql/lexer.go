@@ -1,5 +1,7 @@
 package sql
 
+import "strings"
+
 // LexerToken represents a single token in the SQL input.
 type LexerToken struct {
 	Type  string
@@ -20,6 +22,9 @@ const (
 )
 
 // Lexer splits the SQL input into tokens.
+// Note: This lexer is basic and only supports simple SELECT queries with = operator.
+// It does not handle quoted identifiers, string literals, or other SQL operators.
+// For more advanced SQL support, extend this lexer accordingly.
 func Lexer(input string) []LexerToken {
 	input = strings.TrimSpace(input)
 	tokens := []LexerToken{}
@@ -65,4 +70,3 @@ func Lexer(input string) []LexerToken {
 
 	return tokens
 }
-

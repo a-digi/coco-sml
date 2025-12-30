@@ -28,11 +28,13 @@ func main() {
 	}
 	// Override port if provided and not zero
 	if args.Port != 0 {
+		fmt.Printf("[main] Overriding config port with argument: %d\n", args.Port)
 		cfg.Port = args.Port
 	}
 
 	// Override data directory only if argument is set and not empty
 	if args.DataDir != "" {
+		fmt.Printf("[main] Overriding config data directory with argument: %s\n", args.DataDir)
 		cfg.DataFolderPath = args.DataDir
 	}
 

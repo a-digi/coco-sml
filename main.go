@@ -10,14 +10,13 @@ func main() {
 	args := server.ParseArguments()
 	fmt.Println("coco-sml semantic search API server (starter)")
 
-	if args.Action == "stop" {
+	if args.Action == server.ActionStop {
 		server.StopServer(args.DataDir)
 		return
 	}
 
-	// Only if action is "start", further arguments are evaluated
-	if args.Action != "start" {
-		fmt.Println("No valid action provided. Use 'start' or 'stop'.")
+	if args.Action != server.ActionStart {
+		fmt.Println("No valid action provided. Usage: ./app/coco-sml start|stop [--data-dir=...] [--config=...] [--port=...]")
 		return
 	}
 

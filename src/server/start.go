@@ -18,7 +18,6 @@ import (
 
 // StartServer starts the HTTP API server
 func StartServer(addr string) {
-	http.HandleFunc("/v1/status", statusHandler)
 	log.Printf("Starting coco-sml API server on %s...", addr)
 	if err := http.ListenAndServe(addr, nil); err != nil {
 		log.Fatalf("Server failed: %v", err)

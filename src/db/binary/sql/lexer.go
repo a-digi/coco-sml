@@ -1,6 +1,9 @@
 package sql
 
-import "strings"
+import (
+	"strings"
+	"unicode"
+)
 
 // LexerToken represents a single token in the SQL input.
 type LexerToken struct {
@@ -8,65 +11,167 @@ type LexerToken struct {
 	Value string
 }
 
-// Token types for basic SQL SELECT parsing.
+// Token types for SQL parsing.
 const (
-	TokenSelect   = "SELECT"
-	TokenFrom     = "FROM"
-	TokenWhere    = "WHERE"
-	TokenAnd      = "AND"
-	TokenComma    = ","
-	TokenAsterisk = "*"
-	TokenIdent    = "IDENT"
-	TokenOpEq     = "="
-	TokenEOF      = "EOF"
+	TokenSelect    = "SELECT"
+	TokenFrom      = "FROM"
+	TokenWhere     = "WHERE"
+	TokenAnd       = "AND"
+	TokenComma     = ","
+	TokenAsterisk  = "*"
+	TokenIdent     = "IDENT"
+	TokenOpEq      = "="
+	TokenOpNeq     = "!="
+	TokenOpLt      = "<"
+	TokenOpGt      = ">"
+	TokenOpLe      = "<="
+	TokenOpGe      = ">="
+	TokenLParen    = "("
+	TokenRParen    = ")"
+	TokenSemicolon = ";"
+	TokenString    = "STRING"
+	TokenEOF       = "EOF"
+	TokenUnknown   = "UNKNOWN"
 )
 
 // Lexer splits the SQL input into tokens.
-// Note: This lexer is basic and only supports simple SELECT queries with = operator.
-// It does not handle quoted identifiers, string literals, or other SQL operators.
-// For more advanced SQL support, extend this lexer accordingly.
+// Now supports: =, !=, <, >, <=, >=, (, ), ;, string literals, and robust comma handling.
 func Lexer(input string) []LexerToken {
 	input = strings.TrimSpace(input)
 	tokens := []LexerToken{}
-	words := strings.Fields(input)
-	for _, word := range words {
-		upper := strings.ToUpper(word)
-		switch upper {
-		case "SELECT":
-			tokens = append(tokens, LexerToken{Type: TokenSelect, Value: word})
-		case "FROM":
-			tokens = append(tokens, LexerToken{Type: TokenFrom, Value: word})
-		case "WHERE":
-			tokens = append(tokens, LexerToken{Type: TokenWhere, Value: word})
-		case "AND":
-			tokens = append(tokens, LexerToken{Type: TokenAnd, Value: word})
-		case "*":
-			tokens = append(tokens, LexerToken{Type: TokenAsterisk, Value: word})
-		default:
-			if strings.Contains(word, ",") {
-				for _, part := range strings.Split(word, ",") {
-					if part != "" {
-						tokens = append(tokens, LexerToken{Type: TokenIdent, Value: part})
-					}
-					if part != word {
-						tokens = append(tokens, LexerToken{Type: TokenComma, Value: ","})
-					}
-				}
-			} else if strings.Contains(word, "=") {
-				parts := strings.Split(word, "=")
-				if parts[0] != "" {
-					tokens = append(tokens, LexerToken{Type: TokenIdent, Value: parts[0]})
-				}
-				tokens = append(tokens, LexerToken{Type: TokenOpEq, Value: "="})
-				if len(parts) > 1 && parts[1] != "" {
-					tokens = append(tokens, LexerToken{Type: TokenIdent, Value: parts[1]})
-				}
-			} else {
-				tokens = append(tokens, LexerToken{Type: TokenIdent, Value: word})
-			}
+	runes := []rune(input)
+	length := len(runes)
+	pos := 0
+
+	next := func() rune {
+		if pos < length {
+			r := runes[pos]
+			pos++
+			return r
+		}
+		return 0
+	}
+
+	peek := func() rune {
+		if pos < length {
+			return runes[pos]
+		}
+		return 0
+	}
+
+	skipWhitespace := func() {
+		for unicode.IsSpace(peek()) {
+			next()
 		}
 	}
-	tokens = append(tokens, LexerToken{Type: TokenEOF, Value: ""})
 
+	for pos < length {
+		skipWhitespace()
+		r := peek()
+		if r == 0 {
+			break
+		}
+		// Handle single-char tokens
+		switch r {
+		case ',':
+			next()
+			tokens = append(tokens, LexerToken{Type: TokenComma, Value: ","})
+			continue
+		case '*':
+			next()
+			tokens = append(tokens, LexerToken{Type: TokenAsterisk, Value: "*"})
+			continue
+		case '(':
+			next()
+			tokens = append(tokens, LexerToken{Type: TokenLParen, Value: "("})
+			continue
+		case ')':
+			next()
+			tokens = append(tokens, LexerToken{Type: TokenRParen, Value: ")"})
+			continue
+		case ';':
+			next()
+			tokens = append(tokens, LexerToken{Type: TokenSemicolon, Value: ";"})
+			continue
+		case '\'', '"': // String literal
+			quote := next()
+			start := pos
+			for peek() != 0 && peek() != quote {
+				next()
+			}
+			val := string(runes[start:pos])
+			if peek() == quote {
+				next()
+			}
+			tokens = append(tokens, LexerToken{Type: TokenString, Value: val})
+			continue
+		}
+		// Handle operators
+		if r == '=' {
+			next()
+			tokens = append(tokens, LexerToken{Type: TokenOpEq, Value: "="})
+			continue
+		}
+		if r == '!' && peekN(runes, pos, length, 1) == '=' {
+			next(); next()
+			tokens = append(tokens, LexerToken{Type: TokenOpNeq, Value: "!="})
+			continue
+		}
+		if r == '<' {
+			next()
+			if peek() == '=' {
+				next()
+				tokens = append(tokens, LexerToken{Type: TokenOpLe, Value: "<="})
+			} else {
+				tokens = append(tokens, LexerToken{Type: TokenOpLt, Value: "<"})
+			}
+			continue
+		}
+		if r == '>' {
+			next()
+			if peek() == '=' {
+				next()
+				tokens = append(tokens, LexerToken{Type: TokenOpGe, Value: ">="})
+			} else {
+				tokens = append(tokens, LexerToken{Type: TokenOpGt, Value: ">"})
+			}
+			continue
+		}
+		// Identifiers and keywords
+		if unicode.IsLetter(r) || r == '_' {
+			start := pos
+			next()
+			for unicode.IsLetter(peek()) || unicode.IsDigit(peek()) || peek() == '_' {
+				next()
+			}
+			val := string(runes[start-1 : pos])
+			upper := strings.ToUpper(val)
+			switch upper {
+			case "SELECT":
+				tokens = append(tokens, LexerToken{Type: TokenSelect, Value: val})
+			case "FROM":
+				tokens = append(tokens, LexerToken{Type: TokenFrom, Value: val})
+			case "WHERE":
+				tokens = append(tokens, LexerToken{Type: TokenWhere, Value: val})
+			case "AND":
+				tokens = append(tokens, LexerToken{Type: TokenAnd, Value: val})
+			default:
+				tokens = append(tokens, LexerToken{Type: TokenIdent, Value: val})
+			}
+			continue
+		}
+		// Unknown token
+		tokens = append(tokens, LexerToken{Type: TokenUnknown, Value: string(r)})
+		next()
+	}
+	tokens = append(tokens, LexerToken{Type: TokenEOF, Value: ""})
 	return tokens
+}
+
+// peekN peeks ahead n runes in the input.
+func peekN(runes []rune, pos, length, n int) rune {
+	if pos+n < length {
+		return runes[pos+n]
+	}
+	return 0
 }

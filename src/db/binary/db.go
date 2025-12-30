@@ -7,7 +7,8 @@ import (
 	"regexp"
 	"time"
 
-	table "github.com/a-digi/coco-sml/src/db/internal/table"
+	table "github.com/a-digi/coco-sml/src/db/binary/table"
+	sql "github.com/a-digi/coco-sml/src/db/binary/sql"
 )
 
 // Server represents the server instance and its configuration.
@@ -58,6 +59,12 @@ func (s *Server) Database() (*Database, error) {
 // LoadTableMeta loads the metadata for all tables from tables.meta in the database directory using the shared logic from table.go.
 func (db *Database) LoadTableMeta() ([]table.TableMeta, error) {
 	return table.LoadTableMeta(db.Name)
+}
+
+// Select executes a SELECT query using the shared ExecuteSelect logic from select.go.
+// It returns the result rows or an error.
+func (db *Database) Select(query *sql.SQLQuery) ([]map[string]interface{}, error) {
+	return table.ExecuteSelect(query, db.Name)
 }
 
 // ErrInvalidDatabaseName is returned when the database name contains invalid characters.

@@ -32,6 +32,7 @@ const (
 	TokenString    = "STRING"
 	TokenEOF       = "EOF"
 	TokenUnknown   = "UNKNOWN"
+	TokenLimit     = "LIMIT"
 )
 
 // Lexer splits the SQL input into tokens.
@@ -155,6 +156,8 @@ func Lexer(input string) []LexerToken {
 				tokens = append(tokens, LexerToken{Type: TokenWhere, Value: val})
 			case "AND":
 				tokens = append(tokens, LexerToken{Type: TokenAnd, Value: val})
+			case "LIMIT":
+				tokens = append(tokens, LexerToken{Type: TokenLimit, Value: val})
 			default:
 				tokens = append(tokens, LexerToken{Type: TokenIdent, Value: val})
 			}

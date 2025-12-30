@@ -63,7 +63,11 @@ func ExecuteSelect(query *SQLQuery, dataDir string) ([]ResultRow, error) {
 
 	// Select requested fields
 	var results []ResultRow
+	count := 0
 	for _, row := range filtered {
+		if query.Limit > 0 && count >= query.Limit {
+			break
+		}
 		result := ResultRow{}
 		if len(query.Fields) == 1 && query.Fields[0] == "*" {
 			for _, f := range tableFields {
@@ -75,6 +79,7 @@ func ExecuteSelect(query *SQLQuery, dataDir string) ([]ResultRow, error) {
 			}
 		}
 		results = append(results, result)
+		count++
 	}
 
 	return results, nil

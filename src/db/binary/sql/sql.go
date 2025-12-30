@@ -11,6 +11,7 @@ type SQLQuery struct {
 	Table      string
 	Fields     []string
 	Conditions map[string]string // field -> value (simple equality only)
+	Limit      int               // Optional LIMIT clause
 }
 
 var ErrInvalidSQL = errors.New("invalid SQL query")
@@ -84,5 +85,15 @@ func ParseSQL(query string) (*SQLQuery, error) {
 			break
 		}
 	}
-	return &SQLQuery{Table: table, Fields: fields, Conditions: conditions}, nil
+	// LIMIT (optional)
+	limit := 0
+	if consume(TokenLimit) {
+		if tokens[pos].Type == TokenIdent {
+			parsed := 0
+			fmt.Sscanf(tokens[pos].Value, "%d", &parsed)
+			limit = parsed
+			pos++
+		}
+	}
+	return &SQLQuery{Table: table, Fields: fields, Conditions: conditions, Limit: limit}, nil
 }

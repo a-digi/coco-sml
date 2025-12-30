@@ -13,7 +13,7 @@ import (
 	"time"
 	"github.com/a-digi/coco-sml/src/server/process"
 	"github.com/a-digi/coco-sml/src/api"
-	"github.com/a-digi/coco-sml/src/server/route"
+	"github.com/a-digi/coco-sml/src/api/config"
 	"github.com/a-digi/coco-sml/src/db/binary"
 )
 
@@ -48,7 +48,7 @@ func StartServerWithConfig(cfg *Config) {
 		log.Fatalf("Failed to start database server: %v", err)
 	}
 
-	rb := route.NewRouteBuilder(serverInstance)
+	rb := config.NewRouteBuilder(serverInstance)
 	api.RegisterRoutes(rb)
 
 	server := &http.Server{

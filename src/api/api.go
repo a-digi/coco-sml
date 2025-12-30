@@ -2,13 +2,13 @@ package api
 
 import (
 	"net/http"
-	"github.com/a-digi/coco-sml/src/server/route"
+	"github.com/a-digi/coco-sml/src/api/config"
 	"github.com/a-digi/coco-sml/src/db/binary"
 	"github.com/a-digi/coco-sml/src/api/response"
 )
 
 // RegisterRoutes registers all API endpoints using the provided RouteBuilder
-func RegisterRoutes(rb *route.RouteBuilder) {
+func RegisterRoutes(rb *config.RouteBuilder) {
 	// Example: /v1/status endpoint
 	rb.Handle("/v1/status", statusHandler)
 }

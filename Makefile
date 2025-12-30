@@ -2,7 +2,7 @@
 
 .PHONY: run
 run: build
-	./app/coco-sml --data-dir=./data --config=config.json
+	./app/coco-sml start --data-dir=./data --config=config.json
 
 .PHONY: run-dev
 run-dev:

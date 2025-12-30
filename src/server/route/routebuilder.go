@@ -13,10 +13,11 @@ type RouteBuilder struct {
 	DbServer *binary.Server
 }
 
-// NewRouteBuilder creates a new RouteBuilder with a fresh ServeMux
-func NewRouteBuilder() *RouteBuilder {
+// NewRouteBuilder creates a new RouteBuilder with a fresh ServeMux and expects a Server argument
+func NewRouteBuilder(server *binary.Server) *RouteBuilder {
 	return &RouteBuilder{
-		mux: http.NewServeMux(),
+		mux:      http.NewServeMux(),
+		DbServer: server,
 	}
 }
 

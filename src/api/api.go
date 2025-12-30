@@ -14,7 +14,7 @@ func RegisterRoutes(rb *route.RouteBuilder) {
 }
 
 // statusHandler handles GET /v1/status requests
-func statusHandler(w http.ResponseWriter, r *http.Request, _ *binary.Server) {
+func statusHandler(w http.ResponseWriter, r *http.Request, dbServer *binary.Server) {
 	w.Header().Set("Content-Type", "application/json")
 	if r.Method != http.MethodGet {
 		w.WriteHeader(http.StatusMethodNotAllowed)

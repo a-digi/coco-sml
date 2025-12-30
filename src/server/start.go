@@ -12,6 +12,8 @@ import (
 	"syscall"
 	"time"
 	"github.com/a-digi/coco-sml/src/server/process"
+	"github.com/a-digi/coco-sml/src/api"
+	"github.com/a-digi/coco-sml/src/server/route"
 )
 
 // StartServer starts the HTTP API server
@@ -36,16 +38,20 @@ func StartServerWithConfig(cfg *Config) {
 	}
 	defer process.RemovePIDFile(pidFile)
 
+	rb := route.NewRouteBuilder()
+	api.RegisterRoutes(rb)
+
 	server := &http.Server{
 		Addr: fmt.Sprintf(":%d", cfg.Port),
+		Handler: rb.Handler(),
 	}
-	http.HandleFunc("/v1/status", statusHandler)
 
 	done := make(chan struct{})
 
-	// Signal-Handler: SIGINT ignorieren, SIGTERM für Shutdown
+	// Signal handler: ignore SIGINT, use SIGTERM for shutdown
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+
 	go func() {
 		for sig := range sigChan {
 			switch sig {
@@ -68,5 +74,5 @@ func StartServerWithConfig(cfg *Config) {
 	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatalf("Server failed: %v", err)
 	}
-	<-done // Warten auf Shutdown-Signal
+	<-done // Wait for shutdown signal
 }

@@ -1,4 +1,4 @@
-package internaldb
+package binary
 
 import (
 	"encoding/gob"

@@ -1,4 +1,4 @@
-package internaldb
+package binary
 
 // DeleteEntry marks an entry as deleted by key in a sorted slice of entries.
 // Returns the updated slice. If the key does not exist, the slice is unchanged.

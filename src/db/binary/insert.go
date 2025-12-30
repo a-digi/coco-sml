@@ -1,4 +1,4 @@
-package internaldb
+package binary
 
 // InsertEntry inserts or updates an entry in a sorted slice of entries.
 // If the key exists and is deleted, it will be restored and updated.

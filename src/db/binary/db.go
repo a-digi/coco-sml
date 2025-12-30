@@ -7,8 +7,7 @@ import (
 	"path/filepath"
 	"time"
 
-	table "github.com/a-digi/coco-sml/src/db/binary/table"
-	sql "github.com/a-digi/coco-sml/src/db/binary/sql"
+	"github.com/a-digi/coco-sml/src/db/binary/sql"
 )
 
 // Server represents the server instance and its configuration.
@@ -77,8 +76,8 @@ func (s *Server) Database(dbName string) (*Database, error) {
 }
 
 // LoadTableMeta loads the metadata for all tables from tables.meta in the database directory using the shared logic from table.go.
-func (db *Database) LoadTableMeta() ([]table.TableMeta, error) {
-	return table.LoadTableMeta(db.Name)
+func (db *Database) LoadTableMeta() ([]TableMeta, error) {
+	return LoadTableMeta(db.Name)
 }
 
 // Select parses the SQL string query, then executes it using the shared ExecuteSelect logic from select.go.
@@ -90,7 +89,7 @@ func (db *Database) Select(sqlStringQuery string) ([]map[string]interface{}, err
 		return nil, err
 	}
 
-	return table.ExecuteSelect(parsedQuery, db.Name)
+	return ExecuteSelect(parsedQuery, db.Name)
 }
 
 // SaveMeta writes the database metadata to db.meta in the database directory.

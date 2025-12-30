@@ -2,12 +2,15 @@ package route
 
 import (
 	"net/http"
+
+	"github.com/a-digi/coco-sml/src/db/binary"
 )
 
 // RouteBuilder helps to register API routes and handlers
 
 type RouteBuilder struct {
-	mux *http.ServeMux
+	mux      *http.ServeMux
+	DbServer *binary.Server
 }
 
 // NewRouteBuilder creates a new RouteBuilder with a fresh ServeMux

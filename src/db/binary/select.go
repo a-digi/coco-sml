@@ -1,4 +1,4 @@
-package sql
+package binary
 
 import (
 	"encoding/gob"
@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"github.com/a-digi/coco-sml/src/db/binary/sql"
 )
 
 // ResultRow represents a single result row from a SELECT query.
@@ -13,7 +14,7 @@ type ResultRow map[string]interface{}
 
 // ExecuteSelect executes a parsed SELECT SQLQuery and returns results as a slice of maps (field -> value).
 // dataDir is the directory where tables.meta and <table>.data are stored.
-func ExecuteSelect(query *SQLQuery, dataDir string) ([]ResultRow, error) {
+func ExecuteSelect(query *sql.SQLQuery, dataDir string) ([]ResultRow, error) {
 	if query == nil {
 		return nil, errors.New("nil query")
 	}

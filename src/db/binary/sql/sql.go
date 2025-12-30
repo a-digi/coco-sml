@@ -3,7 +3,6 @@ package sql
 import (
 	"errors"
 	"fmt"
-	"strings"
 )
 
 // SQLQuery represents a parsed SQL query (SELECT, INSERT, UPDATE, DELETE).

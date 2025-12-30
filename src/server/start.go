@@ -1,12 +1,16 @@
 package server
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"strconv"
+	"syscall"
+	"time"
 	"github.com/a-digi/coco-sml/src/server/process"
 )
 
@@ -32,10 +36,37 @@ func StartServerWithConfig(cfg *Config) {
 	}
 	defer process.RemovePIDFile(pidFile)
 
+	server := &http.Server{
+		Addr: fmt.Sprintf(":%d", cfg.Port),
+	}
 	http.HandleFunc("/v1/status", statusHandler)
-	addr := fmt.Sprintf(":%d", cfg.Port)
-	log.Printf("Starting coco-sml API server on %s...", addr)
-	if err := http.ListenAndServe(addr, nil); err != nil {
+
+	done := make(chan struct{})
+
+	// Signal-Handler: SIGINT ignorieren, SIGTERM für Shutdown
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+	go func() {
+		for sig := range sigChan {
+			switch sig {
+			case syscall.SIGINT:
+				log.Println("SIGINT (CTRL+C) ignored. Use 'make stop' or SIGTERM to stop the server.")
+			case syscall.SIGTERM:
+				log.Println("SIGTERM received, shutting down gracefully...")
+				ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+				defer cancel()
+				if err := server.Shutdown(ctx); err != nil {
+					log.Fatalf("Graceful shutdown failed: %v", err)
+				}
+				close(done)
+				return
+			}
+		}
+	}()
+
+	log.Printf("Starting coco-sml API server on %s...", server.Addr)
+	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatalf("Server failed: %v", err)
 	}
+	<-done // Warten auf Shutdown-Signal
 }

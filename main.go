@@ -15,6 +15,12 @@ func main() {
 		return
 	}
 
+	// Nur wenn Action "start" ist, werden weitere Argumente ausgewertet
+	if args.Action != "start" {
+		fmt.Println("No valid action provided. Use 'start' or 'stop'.")
+		return
+	}
+
 	configPath := args.Config
 	cfg, err := server.LoadConfig(configPath)
 	if err != nil {

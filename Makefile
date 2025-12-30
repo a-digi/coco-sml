@@ -1,7 +1,7 @@
 # Makefile for coco-sml semantic search API server
 
 .PHONY: run
-run:
+run: build
 	./app/coco-sml --data-dir=./data --config=config.json
 
 .PHONY: run-dev

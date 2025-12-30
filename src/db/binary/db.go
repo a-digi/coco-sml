@@ -131,21 +131,22 @@ func (s *Server) DatabaseCreate(name string, description ...string) error {
 		return ErrInvalidDatabaseName
 	}
 
+	// Existenz prüfen mit FindDatabase
+	_, err := s.FindDatabase(name)
+	if err == nil {
+		return fmt.Errorf("database '%s' already exists", name)
+	}
+	// Nur fortfahren, wenn der Fehler bedeutet, dass die DB nicht existiert
+	if err != nil && err.Error() != fmt.Sprintf("database '%s' not found", name) {
+		return err
+	}
+
 	dbMetaPath := filepath.Join(s.DataDir, "databases")
 	var dbs []DatabaseMeta
-
-	// Bestehende Datenbanken laden, falls vorhanden
 	if file, err := os.Open(dbMetaPath); err == nil {
 		defer file.Close()
 		dec := gob.NewDecoder(file)
-		_ = dec.Decode(&dbs) // Fehler ignorieren, falls Datei leer
-	}
-
-	// Prüfen, ob die DB schon existiert
-	for _, db := range dbs {
-		if db.Name == name {
-			return fmt.Errorf("database '%s' already exists", name)
-		}
+		_ = dec.Decode(&dbs)
 	}
 
 	desc := ""
@@ -162,7 +163,6 @@ func (s *Server) DatabaseCreate(name string, description ...string) error {
 	}
 	dbs = append(dbs, newDB)
 
-	// In Datei schreiben
 	file, err := os.Create(dbMetaPath)
 	if err != nil {
 		return err

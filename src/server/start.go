@@ -84,7 +84,14 @@ func StartServerWithConfig(cfg *Config) {
 		}
 	}()
 
-	log.Printf("Starting coco-sml API server on %s...", server.Addr)
+	log.Printf("Starting coco-sml API server")
+    var host string
+    if server.Addr[0] == ':' {
+        host = "localhost" // default host if only port is set
+        fmt.Printf("Server running at: http://%s%s\n", host, server.Addr)
+    } else {
+        fmt.Printf("Server running at: http://%s\n", server.Addr)
+    }
 	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatalf("Server failed: %v", err)
 	}

@@ -2,127 +2,95 @@
 
 This document provides a detailed step-by-step plan for designing the data model and selecting the storage solution for a semantic search database focused on Machine Learning (ML) content in pure Go.
 
+---
+
 ## 1. Data Model Design
-- **Identify ML Entities:**
-  - Model: Name, architecture, framework, hyperparameters, training data, evaluation metrics, source code, version
-  - Dataset: Name, description, source, format, size, features, labels, license
-  - Experiment: ID, description, model used, dataset used, hyperparameters, results, date
-  - Hyperparameter: Name, value, type, range, impact
-  - Result: Metrics (accuracy, loss, F1, etc.), confusion matrix, plots, logs
-  - Documentation: Text, references, usage examples, related publications
-- **Metadata:**
-  - Creation and modification timestamps
-  - Tags or categories (e.g., NLP, CV, regression, classification)
-  - Relationships (e.g., experiment <-> model, model <-> dataset)
-- **Schema Definition:**
-  - Define Go structs for each ML entity type
-  - Ensure extensibility for future ML fields
+**Implementation Plan:**
+See [data_model_design.md](./data_model_storage/data_model_design.md)
+
+---
 
 ## 2. Storage Solution Selection
-- **Options:**
-  - In-memory (for prototyping, small ML datasets)
-  - File-based (JSON, YAML, CSV for simple persistence)
-  - Embedded database (BadgerDB, BoltDB, SQLite via Go bindings)
-- **Criteria:**
-  - Performance: Fast read/write and indexing for ML metadata
-  - Scalability: Support for large numbers of models, experiments, datasets
-  - Reliability: Data integrity, crash recovery
-  - Simplicity: Easy integration with Go code
-- **Recommendation:**
-  - Start with file-based storage for rapid prototyping
-  - Migrate to BadgerDB or BoltDB for production use
+**Implementation Plan:**
+See [storage_solution_selection.md](./data_model_storage/storage_solution_selection.md)
+
+---
 
 ## 3. Indexing Strategy
-- **Primary Index:**
-  - Unique ID for each ML entity (model, dataset, experiment)
-- **Secondary Indexes:**
-  - Name, tags, type, relationships
-  - Full-text index for semantic search (e.g., over documentation, descriptions)
-- **Index Maintenance:**
-  - Update indexes on add/update/delete
-  - Support incremental indexing
+**Implementation Plan:**
+See [indexing_strategy.md](./data_model_storage/indexing_strategy.md)
+
+---
 
 ## 4. Data Access Layer
-- **CRUD Operations:**
-  - Functions for create, read, update, delete ML entities
-- **Batch Operations:**
-  - Bulk import/export of ML metadata
-  - Batch indexing
-- **API Design:**
-  - Go interfaces for storage and indexing abstraction
+**Implementation Plan:**
+See [data_access_layer.md](./data_model_storage/data_access_layer.md)
+
+---
 
 ## 5. Backup & Migration
-- **Backup Strategy:**
-  - Regular export of ML metadata to files
-- **Migration Plan:**
-  - Tools for migrating between storage backends
+**Implementation Plan:**
+See [backup_migration.md](./data_model_storage/backup_migration.md)
+
+---
 
 # Implementation Documentation: Semantic Search Database for ML in Go
 
 This document describes the implementation approach for a semantic search database for Machine Learning (ML) content in Go, focusing on tokenization, embedding, indexing, and search.
 
+---
+
 ## 1. Data Model
-Define Go structs for ML entities:
-```go
-type MLModel struct {
-    ID          string
-    Name        string
-    Architecture string
-    Framework   string
-    Hyperparams map[string]interface{}
-    TrainingData string
-    Metrics     map[string]float64
-    SourceCode  string
-    Version     string
-    Tags        []string
-    CreatedAt   time.Time
-    UpdatedAt   time.Time
-}
-// Analogous structs for Dataset, Experiment, etc.
-```
+**Implementation Plan:**
+See [data_model_design.md](./data_model_storage/data_model_design.md)
+
+---
 
 ## 2. Tokenization
-- Extract relevant text fields (e.g., Name, Description, Documentation).
-- Split text into tokens using Go's `strings.Fields` or custom tokenizer.
-- Optionally apply stemming, stopword removal, and synonym mapping.
+**Implementation Plan:**
+See [tokenization.md](./data_model_storage/tokenization.md)
+
+---
 
 ## 3. Embedding / Feature Vectors
-- For each entity, create a vector representation:
-    - Simple: Bag-of-Words or TF-IDF (term frequency-inverse document frequency)
-    - Advanced: Integrate pre-trained embeddings (if available for Go)
-- Store vectors in memory or database for fast access.
+**Implementation Plan:**
+See [embedding_feature_vectors.md](./data_model_storage/embedding_feature_vectors.md)
+
+---
 
 ## 4. Indexing
-- Build inverted index: Map tokens to entity IDs for fast lookup.
-- Store entity vectors for similarity search.
-- Update index on add/update/delete operations.
+**Implementation Plan:**
+See [indexing.md](./data_model_storage/indexing.md)
+
+---
 
 ## 5. Similarity Search
-- Implement similarity metrics (e.g., cosine similarity):
-```go
-func CosineSimilarity(a, b []float64) float64 { /* ... */ }
-```
-- For a query, tokenize and embed, then compare with all entity vectors.
-- Return ranked results by similarity score.
+**Implementation Plan:**
+See [similarity_search.md](./data_model_storage/similarity_search.md)
+
+---
 
 ## 6. API & CLI Integration
-- Provide Go functions for search, add, update, delete.
-- CLI commands for semantic search, e.g.:
-```
-mlsearch search --query "image classification CNN"
-```
+**Implementation Plan:**
+See [api_cli_integration.md](./data_model_storage/api_cli_integration.md)
+
+---
 
 ## 7. Persistence
-- Store entities and index in JSON/YAML files or embedded DB (BadgerDB/BoltDB).
-- Load data and index on startup.
+**Implementation Plan:**
+See [persistence.md](./data_model_storage/persistence.md)
+
+---
 
 ## 8. Testing
-- Unit tests for tokenization, embedding, indexing, and search.
-- Integration tests for API and CLI.
+**Implementation Plan:**
+See [testing.md](./data_model_storage/testing.md)
+
+---
 
 ## 9. Documentation
-- Document data structures, search logic, API usage, and CLI commands.
-- Provide code examples and best practices.
+**Implementation Plan:**
+See [documentation.md](./data_model_storage/documentation.md)
 
 ---
 *Last updated: December 30, 2025*

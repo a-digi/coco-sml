@@ -1,162 +1,110 @@
-package binary
+package sql
 
 import (
-	"encoding/binary"
+	"encoding/gob"
 	"errors"
+	"fmt"
 	"os"
+	"path/filepath"
 )
 
-const (
-	// Adjust these sizes as needed for your actual data
-	MaxConditions = 8
-	MaxFieldLen   = 32
-	MaxValueLen   = 256
-	EntrySize     = MaxConditions*(MaxFieldLen+2+MaxValueLen) + 1 + MaxValueLen // rough estimate
-)
+// ResultRow represents a single result row from a SELECT query.
+type ResultRow map[string]interface{}
 
-// Condition represents a single search/filter condition for an entry.
-// Field: the name of the field to compare
-// Operator: the comparison operator (e.g., "=", "!=", ">", "<")
-// Value: the value to compare against
-// For extensibility, you can add more fields as needed.
-type Condition struct {
-	Field    string
-	Operator string
-	Value    string
-}
+// ExecuteSelect executes a parsed SELECT SQLQuery and returns results as a slice of maps (field -> value).
+// dataDir is the directory where tables.meta and <table>.data are stored.
+func ExecuteSelect(query *SQLQuery, dataDir string) ([]ResultRow, error) {
 
-// Entry represents a record in the binary search engine.
-// Conditions: array of conditions that uniquely identify the entry
-// Value: associated value for the entry
-// Deleted: flag for soft deletion (true if entry is logically deleted)
-type Entry struct {
-	Conditions []Condition
-	Value      string
-	Deleted    bool
-}
-
-// ErrEntryNotFound is returned when no matching entry is found in the file.
-var ErrEntryNotFound = errors.New("entry not found")
-
-// compareConditions checks if two arrays of conditions are equal (for binary search).
-// Only supports equality comparison for now.
-func compareConditions(a, b []Condition) bool {
-
-	if len(a) != len(b) {
-		return false
+	if query == nil {
+		return nil, errors.New("nil query")
 	}
 
-	for i := range a {
-		if a[i] != b[i] {
-			return false
-		}
+	// Load table metadata
+	metaPath := filepath.Join(dataDir, "tables.meta")
+	metaFile, err := os.Open(metaPath)
+
+	if err != nil {
+		return nil, fmt.Errorf("Failed to open metadata: %w", err)
 	}
 
-	return true
-}
-
-// BinarySearch performs a binary search for the given conditions in a sorted slice of entries.
-// Returns the index and a pointer to the Entry, or nil if not found or deleted.
-// The entries slice must be sorted by Conditions in ascending order (lexicographically).
-// Returns -1 and nil if the conditions are not found or the entry is deleted.
-func BinarySearch(entries []Entry, conditions []Condition) (int, *Entry) {
-
-	if len(entries) == 0 {
-		return -1, nil
-	}
-
-	low, high := 0, len(entries)-1
-
-	for low <= high {
-		mid := (low + high) / 2
-		if compareConditions(entries[mid].Conditions, conditions) {
-			if entries[mid].Deleted {
-				return mid, nil
+	defer metaFile.Close()
+	var meta struct {
+		Tables []struct {
+			Name   string
+			Fields []struct {
+				Name string
 			}
-			return mid, &entries[mid]
-		} else if lessConditions(entries[mid].Conditions, conditions) {
-			low = mid + 1
-		} else {
-			high = mid - 1
 		}
 	}
 
-	return -1, nil
-}
-
-// lessConditions compares two arrays of conditions lexicographically for sorting.
-// Returns true if a < b.
-func lessConditions(a, b []Condition) bool {
-	minLen := len(a)
-	if len(b) < minLen {
-		minLen = len(b)
+	if err := gob.NewDecoder(metaFile).Decode(&meta); err != nil {
+		return nil, fmt.Errorf("failed to decode metadata: %w", err)
 	}
-	for i := 0; i < minLen; i++ {
-		if a[i].Field < b[i].Field {
-			return true
-		} else if a[i].Field > b[i].Field {
-			return false
-		}
-		if a[i].Operator < b[i].Operator {
-			return true
-		} else if a[i].Operator > b[i].Operator {
-			return false
-		}
-		if a[i].Value < b[i].Value {
-			return true
-		} else if a[i].Value > b[i].Value {
-			return false
-		}
-	}
-	return len(a) < len(b)
-}
 
-// BinarySearchFile performs a binary search for the given conditions in a binary file of entries.
-// Assumes fixed-size records for demonstration. Returns the entry and its index, or error.
-func BinarySearchFile(filePath string, conditions []Condition) (int64, *Entry, error) {
-	file, err := os.Open(filePath)
-	if err != nil {
-		return -1, nil, err
-	}
-	defer file.Close()
+	var tableFields []string
 
-	fileInfo, err := file.Stat()
-	if err != nil {
-		return -1, nil, err
-	}
-	totalEntries := fileInfo.Size() / int64(EntrySize)
-	low, high := int64(0), totalEntries-1
+	found := false
 
-	for low <= high {
-		mid := (low + high) / 2
-		pos := mid * int64(EntrySize)
-		entry, err := readEntryAt(file, pos)
-		if err != nil {
-			return -1, nil, err
-		}
-		if compareConditions(entry.Conditions, conditions) {
-			if entry.Deleted {
-				return mid, nil, ErrEntryNotFound
+	for _, t := range meta.Tables {
+		if t.Name == query.Table {
+			for _, f := range t.Fields {
+				tableFields = append(tableFields, f.Name)
 			}
-			return mid, entry, nil
-		} else if lessConditions(entry.Conditions, conditions) {
-			low = mid + 1
-		} else {
-			high = mid - 1
+			found = true
+			break
 		}
 	}
-	return -1, nil, ErrEntryNotFound
+	if !found {
+		return nil, fmt.Errorf("table '%s' not found", query.Table)
+	}
+
+	// Open table data file (assume binary gob, e.g. <table>.data)
+	dataPath := filepath.Join(dataDir, query.Table+".data")
+	dataFile, err := os.Open(dataPath)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to open table data: %w", err)
+	}
+
+	defer dataFile.Close()
+	dec := gob.NewDecoder(dataFile)
+	var allRows []map[string]interface{}
+
+	if err := dec.Decode(&allRows); err != nil {
+		return nil, fmt.Errorf("failed to decode table data: %w", err)
+	}
+
+	// Filter rows by query.Conditions
+	var filtered []ResultRow
+	for _, row := range allRows {
+		match := true
+		for k, v := range query.Conditions {
+			if fmt.Sprint(row[k]) != v {
+				match = false
+				break
+			}
+		}
+		if match {
+			filtered = append(filtered, row)
+		}
+	}
+
+	// Select requested fields
+	var results []ResultRow
+	for _, row := range filtered {
+		result := ResultRow{}
+		if len(query.Fields) == 1 && query.Fields[0] == "*" {
+			for _, f := range tableFields {
+				result[f] = row[f]
+			}
+		} else {
+			for _, f := range query.Fields {
+				result[f] = row[f]
+			}
+		}
+		results = append(results, result)
+	}
+
+	return results, nil
 }
 
-// readEntryAt reads a single entry from the file at the given offset.
-// Assumes fixed-size records for demonstration.
-func readEntryAt(file *os.File, offset int64) (*Entry, error) {
-	buf := make([]byte, EntrySize)
-	_, err := file.ReadAt(buf, offset)
-	if err != nil {
-		return nil, err
-	}
-	// TODO: Implement proper decoding from buf to Entry
-	// For demonstration, return a zero Entry
-	return &Entry{}, nil
-}

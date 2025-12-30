@@ -1,19 +1,27 @@
 # Makefile for coco-sml semantic search API server
 
 .PHONY: run
+run:
+	./app/coco-sml --data-dir=./data --config=config.json
 
+.PHONY: run-dev
 run-dev:
 	go run main.go config.json
 
-.PHONY: stop
+.PHONY: stop-dev
+stop-dev:
+	go run stop_main.go
 
-# Optional: build target
 .PHONY: build
 build:
-	go build -o coco-sml main.go
+	mkdir -p app
+	go build -o app/coco-sml main.go
 
-# Optional: clean target
 .PHONY: clean
 clean:
-	rm -f coco-sml
+	rm -f app/coco-sml
 	rm -f ./data/server.pid
+
+.PHONY: stop
+stop:
+	./app/coco-sml stop

@@ -20,9 +20,14 @@ func NewRouteBuilder() *RouteBuilder {
 	}
 }
 
-// Handle registers a handler for a given pattern
-func (rb *RouteBuilder) Handle(pattern string, handler http.HandlerFunc) {
-	rb.mux.HandleFunc(pattern, handler)
+// ServerHandlerFunc is a handler function that has access to the binary.Server
+type ServerHandlerFunc func(w http.ResponseWriter, r *http.Request, srv *binary.Server)
+
+// Handle registers a handler for a given pattern, providing DbServer as additional argument
+func (rb *RouteBuilder) Handle(pattern string, handler ServerHandlerFunc) {
+	rb.mux.HandleFunc(pattern, func(w http.ResponseWriter, r *http.Request) {
+		handler(w, r, rb.DbServer)
+	})
 }
 
 // Handler returns the underlying ServeMux for use in http.Server

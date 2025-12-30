@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/a-digi/coco-sml/src/db/binary/sql"
@@ -19,7 +20,8 @@ type Server struct {
 // Start initializes the server, validates the database name, and creates the folder if necessary.
 // Returns the initialized Server or an error.
 func Start(dataDir string) (*Server, error) {
-	if !IsValidName(dataDir) {
+	base := filepath.Base(dataDir)
+	if !IsValidName(base) {
 		return nil, ErrInvalidDatabaseName
 	}
 

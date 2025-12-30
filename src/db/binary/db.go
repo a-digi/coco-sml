@@ -28,6 +28,18 @@ func Start(dataDir string) (*Server, error) {
 		return nil, err
 	}
 
+	dbMetaPath := filepath.Join(dataDir, "databases")
+	if _, err := os.Stat(dbMetaPath); os.IsNotExist(err) {
+		file, err := os.Create(dbMetaPath)
+
+		if err != nil {
+			return nil, fmt.Errorf("could not create databases file: %w", err)
+		}
+
+		file.Close()
+		fmt.Println("[DEBUG] Created new databases file:", dbMetaPath)
+	}
+
 	return &Server{
 		DataDir: dataDir,
 		started: true,

@@ -8,6 +8,7 @@ import (
 // SetupApi initializes the API setup with a given binary.Server
 func SetupApi(server *binary.Server) {
 	SetupInternalDatabase(server)
+	SetupUserTable(server)
 }
 
 // EnsureDatabaseInternalExists checks if the 'internal' database exists and creates it if not.

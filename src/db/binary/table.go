@@ -89,11 +89,12 @@ func (dt *DataType) UnmarshalJSON(data []byte) error {
 
 // Field represents a schema field for a table, including type and validation metadata.
 type Field struct {
-	Name      string   `json:"name"`      // Field name (unique within the table)
-	DataType  DataType `json:"dataType"` // Data type (enum: StringType, IntType, FloatType, BoolType)
-	MinLength int      `json:"minLength"`// Minimum length for string fields (0 if not applicable)
-	MaxLength int      `json:"maxLength"`// Maximum length for string fields (0 if not applicable)
-	Required  bool     `json:"required"` // Whether this field is required (must be present in every entry)
+	Name         string      `json:"name"`      // Field name (unique within the table)
+	DataType     DataType    `json:"dataType"` // Data type (enum: StringType, IntType, FloatType, BoolType)
+	MinLength    int         `json:"minLength"`// Minimum length for string fields (0 if not applicable)
+	MaxLength    int         `json:"maxLength"`// Maximum length for string fields (0 if not applicable)
+	Required     bool        `json:"required"` // Whether this field is required (must be present in every entry)
+	DefaultValue interface{} `json:"defaultValue,omitempty"` // Optional default value for the field
 }
 
 // Table represents metadata and schema information for a logical table in the search engine.

@@ -165,7 +165,10 @@ func (s *Server) DatabaseCreate(name string, description ...string) error {
 	if file, err := os.Open(dbMetaPath); err == nil {
 		defer file.Close()
 		dec := gob.NewDecoder(file)
-		_ = dec.Decode(&dbs)
+		errDecode := dec.Decode(&dbs)
+		if errDecode != nil && errDecode.Error() != "EOF" {
+			return fmt.Errorf("could not decode databases file: %w", errDecode)
+		}
 	}
 
 	desc := ""
@@ -209,8 +212,9 @@ func (s *Server) FindDatabase(name string) (DatabaseMeta, error) {
 
 	var dbs []DatabaseMeta
 	dec := gob.NewDecoder(file)
-	if err := dec.Decode(&dbs); err != nil {
-		return DatabaseMeta{}, fmt.Errorf("could not decode databases file: %w", err)
+	errDecode := dec.Decode(&dbs)
+	if errDecode != nil && errDecode.Error() != "EOF" {
+		return DatabaseMeta{}, fmt.Errorf("could not decode databases file: %w", errDecode)
 	}
 
 	for _, db := range dbs {

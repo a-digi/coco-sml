@@ -7,11 +7,11 @@ import (
 
 // SetupApi initializes the API setup with a given binary.Server
 func SetupApi(server *binary.Server) {
-	EnsureDatabaseInternalExists(server)
+	SetupInternalDatabase(server)
 }
 
 // EnsureDatabaseInternalExists checks if the 'internal' database exists and creates it if not.
-func EnsureDatabaseInternalExists(server *binary.Server) {
+func SetupInternalDatabase(server *binary.Server) {
 	_, err := server.FindDatabase("internal")
 	if err != nil {
 		errCreate := server.DatabaseCreate("internal", "Internal system database")

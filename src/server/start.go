@@ -14,6 +14,7 @@ import (
 	"github.com/a-digi/coco-sml/src/server/process"
 	"github.com/a-digi/coco-sml/src/api"
 	"github.com/a-digi/coco-sml/src/server/route"
+	"github.com/a-digi/coco-sml/src/db/binary"
 )
 
 // StartServer starts the HTTP API server
@@ -37,7 +38,17 @@ func StartServerWithConfig(cfg *Config) {
 	}
 	defer process.RemovePIDFile(pidFile)
 
-	rb := route.NewRouteBuilder()
+	dbData := filepath.Join(cfg.DataFolderPath, "db")
+	if err := os.MkdirAll(dbData, 0755); err != nil {
+		log.Fatalf("Failed to create database folder: %v", err)
+	}
+
+	serverInstance, err := binary.Start(dbData)
+	if err != nil {
+		log.Fatalf("Failed to start database server: %v", err)
+	}
+
+	rb := route.NewRouteBuilder(serverInstance)
 	api.RegisterRoutes(rb)
 
 	server := &http.Server{

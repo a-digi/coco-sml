@@ -49,6 +49,7 @@ func StartServerWithConfig(cfg *Config) {
 	}
 
 	rb := config.NewRouteBuilder(serverInstance)
+	config.SetupApi(serverInstance)
 	api.RegisterRoutes(rb)
 
 	server := &http.Server{

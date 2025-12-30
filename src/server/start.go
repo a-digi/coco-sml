@@ -28,14 +28,17 @@ func StartServer(addr string) {
 // StartServerWithConfig starts the HTTP API server with config and manages PID file
 func StartServerWithConfig(cfg *Config) {
 	pidFile := filepath.Join(cfg.DataFolderPath, "server.pid")
+
 	if data, err := os.ReadFile(pidFile); err == nil {
 		if pid, err := strconv.Atoi(string(data)); err == nil && process.IsProcessRunning(pid) {
 			log.Fatalf("Server is already running with PID %d", pid)
 		}
 	}
+
 	if err := process.WritePIDFile(pidFile); err != nil {
 		log.Fatalf("Failed to write PID file: %v", err)
 	}
+
 	defer process.RemovePIDFile(pidFile)
 
 	dbData := filepath.Join(cfg.DataFolderPath, "db")

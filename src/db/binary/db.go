@@ -1,6 +1,7 @@
 package binary
 
 import (
+	"encoding/gob"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -42,6 +43,17 @@ type Database struct {
 	StartedAt time.Time // Timestamp when the database was started
 }
 
+// DatabaseMeta holds metadata about the database instance.
+type DatabaseMeta struct {
+	Name        string    // Database name (directory)
+	Version     int       // Database version
+	CreatedAt   time.Time // Creation timestamp
+	UpdatedAt   time.Time // Last update timestamp
+	Description string    // Optional description
+	Owner       string    // Optional owner/creator
+	LastAccess  time.Time // Last accessed timestamp
+}
+
 // Database returns the Database instance if the server has been started, otherwise returns an error.
 // It is a method of Server.
 func (s *Server) Database() (*Database, error) {
@@ -71,6 +83,34 @@ func (db *Database) Select(sqlStringQuery string) ([]map[string]interface{}, err
 	}
 
 	return table.ExecuteSelect(parsedQuery, db.Name)
+}
+
+// SaveMeta writes the database metadata to db.meta in the database directory.
+func (db *Database) SaveMeta(meta DatabaseMeta) error {
+	metaPath := filepath.Join(db.Name, "db.meta")
+	file, err := os.Create(metaPath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	enc := gob.NewEncoder(file)
+	return enc.Encode(meta)
+}
+
+// LoadMeta reads the database metadata from db.meta in the database directory.
+func (db *Database) LoadMeta() (DatabaseMeta, error) {
+	metaPath := filepath.Join(db.Name, "db.meta")
+	file, err := os.Open(metaPath)
+	if err != nil {
+		return DatabaseMeta{}, err
+	}
+	defer file.Close()
+	var meta DatabaseMeta
+	dec := gob.NewDecoder(file)
+	if err := dec.Decode(&meta); err != nil {
+		return DatabaseMeta{}, err
+	}
+	return meta, nil
 }
 
 // ErrInvalidDatabaseName is returned when the database name contains invalid characters.

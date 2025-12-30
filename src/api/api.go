@@ -10,7 +10,7 @@ import (
 // RegisterRoutes registers all API endpoints using the provided RouteBuilder
 func RegisterRoutes(rb *config.RouteBuilder) {
 	// Example: /v1/status endpoint
-	rb.Handle("/v1/status", statusHandler)
+	rb.Handle("/", statusHandler)
 }
 
 // statusHandler handles GET /v1/status requests

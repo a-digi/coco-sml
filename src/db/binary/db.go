@@ -140,6 +140,15 @@ func (s *Server) DatabaseCreate(name string, description ...string) error {
 	}
 
 	dbMetaPath := filepath.Join(s.DataDir, "databases")
+	if _, err := os.Stat(dbMetaPath); os.IsNotExist(err) {
+		file, err := os.Create(dbMetaPath)
+		if err != nil {
+			return fmt.Errorf("could not create databases file: %w", err)
+		}
+		file.Close()
+		fmt.Println("[DEBUG] Created new databases file:", dbMetaPath)
+	}
+
 	var dbs []DatabaseMeta
 	if file, err := os.Open(dbMetaPath); err == nil {
 		defer file.Close()

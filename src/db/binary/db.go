@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"regexp"
 	"time"
 
 	table "github.com/a-digi/coco-sml/src/db/binary/table"
@@ -21,9 +20,7 @@ type Server struct {
 // Start initializes the server, validates the database name, and creates the folder if necessary.
 // Returns the initialized Server or an error.
 func Start(dataDir string) (*Server, error) {
-	validName := regexp.MustCompile(`^[A-Za-z_]+$`)
-
-	if !validName.MatchString(dataDir) {
+	if !IsValidName(dataDir) {
 		return nil, ErrInvalidDatabaseName
 	}
 
@@ -54,16 +51,21 @@ type DatabaseMeta struct {
 	LastAccess  time.Time // Last accessed timestamp
 }
 
-// Database returns the Database instance if the server has been started, otherwise returns an error.
+// Database returns the Database instance for the given database name (directory) if the server has been started, otherwise returns an error.
 // It is a method of Server.
-func (s *Server) Database() (*Database, error) {
-
+func (s *Server) Database(dbName string) (*Database, error) {
 	if !s.started {
 		return nil, ErrServerNotStarted
 	}
 
+	// Validate dbName
+	if !IsValidName(dbName) {
+		return nil, ErrInvalidDatabaseName
+	}
+
+	fullPath := filepath.Join(s.DataDir, dbName)
 	return &Database{
-		Name:      s.DataDir,
+		Name:      fullPath,
 		StartedAt: time.Now(),
 	}, nil
 }

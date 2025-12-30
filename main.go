@@ -8,7 +8,6 @@ import (
 
 func main() {
 	args := server.ParseArguments()
-	fmt.Println("coco-sml semantic search API server (starter)")
 
 	if args.Action == server.ActionStop {
 		server.StopServer(args.DataDir)
@@ -28,17 +27,15 @@ func main() {
 	}
 	// Override port if provided and not zero
 	if args.Port != 0 {
-		fmt.Printf("[main] Overriding config port with argument: %d\n", args.Port)
 		cfg.Port = args.Port
 	}
 
 	// Override data directory only if argument is set and not empty
 	if args.DataDir != "" {
-		fmt.Printf("[main] Overriding config data directory with argument: %s\n", args.DataDir)
 		cfg.DataFolderPath = args.DataDir
 	}
 
-	// Start server in a separate goroutine so the terminal remains usable
+    // Start server in a separate goroutine so the terminal remains usable
 	go server.StartServerWithConfig(cfg)
 
 	// Main process stays active, but does not block the terminal

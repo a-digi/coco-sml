@@ -37,5 +37,16 @@ This document details the requirements and goals for implementing a semantic sea
 - Easy integration into SML CLI and Go API
 - Comprehensive documentation and usage examples
 
+## 6. API Server
+- Provide a RESTful API server for semantic search and index management
+- Endpoints for search, add, update, delete, and status
+- Use Go frameworks (net/http, gin, echo, chi)
+- JSON serialization for requests and responses
+- Optional authentication for protected endpoints
+- Document API endpoints and usage (OpenAPI/Swagger)
+- Write unit and integration tests for API
+- Prepare for deployment (Docker, Systemd, etc.)
+- See [api_server.md](./api_server.md) for detailed implementation plan
+
 ---
 *Last updated: December 30, 2025*

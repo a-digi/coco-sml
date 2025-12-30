@@ -16,6 +16,7 @@ func RegisterRoutes(rb *route.RouteBuilder) {
 // statusHandler handles GET /v1/status requests
 func statusHandler(w http.ResponseWriter, r *http.Request, dbServer *binary.Server) {
 	w.Header().Set("Content-Type", "application/json")
+	dbServer.
 	if r.Method != http.MethodGet {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		json.NewEncoder(w).Encode(map[string]string{"error": "Method not allowed"})

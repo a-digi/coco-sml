@@ -15,6 +15,7 @@ type RouteBuilder struct {
 
 // NewRouteBuilder creates a new RouteBuilder with a fresh ServeMux and expects a Server argument
 func NewRouteBuilder(server *binary.Server) *RouteBuilder {
+
 	return &RouteBuilder{
 		mux:      http.NewServeMux(),
 		DbServer: server,

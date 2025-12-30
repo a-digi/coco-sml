@@ -82,13 +82,11 @@ func (db *Database) LoadTableMeta() ([]TableMeta, error) {
 
 // Select parses the SQL string query, then executes it using the shared ExecuteSelect logic from select.go.
 // It returns the result rows or an error.
-func (db *Database) Select(sqlStringQuery string) ([]map[string]interface{}, error) {
+func (db *Database) Select(sqlStringQuery string) ([]ResultRow, error) {
 	parsedQuery, err := sql.ParseSQL(sqlStringQuery)
-
 	if err != nil {
 		return nil, err
 	}
-
 	return ExecuteSelect(parsedQuery, db.Name)
 }
 

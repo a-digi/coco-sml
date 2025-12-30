@@ -2,6 +2,7 @@ package binary
 
 import (
 	"encoding/gob"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"

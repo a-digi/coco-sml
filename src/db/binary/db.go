@@ -63,6 +63,12 @@ func (s *Server) Database(dbName string) (*Database, error) {
 		return nil, ErrInvalidDatabaseName
 	}
 
+	// Prüfen, ob die Datenbank existiert
+	_, err := s.FindDatabase(dbName)
+	if err != nil {
+		return nil, fmt.Errorf("database '%s' does not exist: %w", dbName, err)
+	}
+
 	fullPath := filepath.Join(s.DataDir, dbName)
 	return &Database{
 		Name:      fullPath,
@@ -113,6 +119,88 @@ func (db *Database) LoadMeta() (DatabaseMeta, error) {
 		return DatabaseMeta{}, err
 	}
 	return meta, nil
+}
+
+// DatabaseCreate legt eine neue Datenbank mit dem angegebenen Namen und optionaler Beschreibung an.
+// Die Metadaten werden in der Binärdatei "databases" im DataDir gespeichert.
+func (s *Server) DatabaseCreate(name string, description ...string) error {
+	if !s.started {
+		return ErrServerNotStarted
+	}
+	if !IsValidName(name) {
+		return ErrInvalidDatabaseName
+	}
+
+	dbMetaPath := filepath.Join(s.DataDir, "databases")
+	var dbs []DatabaseMeta
+
+	// Bestehende Datenbanken laden, falls vorhanden
+	if file, err := os.Open(dbMetaPath); err == nil {
+		defer file.Close()
+		dec := gob.NewDecoder(file)
+		_ = dec.Decode(&dbs) // Fehler ignorieren, falls Datei leer
+	}
+
+	// Prüfen, ob die DB schon existiert
+	for _, db := range dbs {
+		if db.Name == name {
+			return fmt.Errorf("database '%s' already exists", name)
+		}
+	}
+
+	desc := ""
+	if len(description) > 0 {
+		desc = description[0]
+	}
+
+	newDB := DatabaseMeta{
+		Name:        name,
+		Version:     1,
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+		Description: desc,
+	}
+	dbs = append(dbs, newDB)
+
+	// In Datei schreiben
+	file, err := os.Create(dbMetaPath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	enc := gob.NewEncoder(file)
+	return enc.Encode(dbs)
+}
+
+// FindDatabase sucht eine Datenbank anhand des Namens in der zentralen "databases"-Datei und gibt deren Metadaten zurück.
+func (s *Server) FindDatabase(name string) (DatabaseMeta, error) {
+	if !s.started {
+		return DatabaseMeta{}, ErrServerNotStarted
+	}
+	if !IsValidName(name) {
+		return DatabaseMeta{}, ErrInvalidDatabaseName
+	}
+
+	dbMetaPath := filepath.Join(s.DataDir, "databases")
+	file, err := os.Open(dbMetaPath)
+	if err != nil {
+		return DatabaseMeta{}, fmt.Errorf("could not open databases file: %w", err)
+	}
+	defer file.Close()
+
+	var dbs []DatabaseMeta
+	dec := gob.NewDecoder(file)
+	if err := dec.Decode(&dbs); err != nil {
+		return DatabaseMeta{}, fmt.Errorf("could not decode databases file: %w", err)
+	}
+
+	for _, db := range dbs {
+		if db.Name == name {
+			return db, nil
+		}
+	}
+
+	return DatabaseMeta{}, fmt.Errorf("database '%s' not found", name)
 }
 
 // ErrInvalidDatabaseName is returned when the database name contains invalid characters.

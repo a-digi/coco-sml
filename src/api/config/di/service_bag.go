@@ -5,12 +5,18 @@ import (
 )
 
 type ServiceBag struct {
-	BcryptManager *encrypt.BcryptManager
+	BcryptManager   *encrypt.BcryptManager
+	RegistryManager any // late binding to avoid import cycle
 }
 
 // NewServiceBag initializes and returns a ServiceBag with all dependencies wired up.
-func CreateServiceBag() *ServiceBag {
+func NewServiceBag() *ServiceBag {
 	return &ServiceBag{
-		BcryptManager: encrypt.CreateBcryptManager(),
+		BcryptManager:   encrypt.CreateBcryptManager(),
+		RegistryManager: nil, // set after construction
 	}
+}
+
+func (sb *ServiceBag) SetRegistryManager(rm any) {
+	sb.RegistryManager = rm
 }

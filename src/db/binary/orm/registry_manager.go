@@ -4,7 +4,6 @@ import (
 	"errors"
 	"sync"
 	"github.com/a-digi/coco-sml/src/db/binary"
-	"github.com/a-digi/coco-sml/src/db/binary/orm"
 )
 
 type RegistryManager struct {

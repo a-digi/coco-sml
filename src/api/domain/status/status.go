@@ -2,12 +2,12 @@ package status
 
 import (
 	"net/http"
-	"github.com/a-digi/coco-sml/src/db/binary"
+	"github.com/a-digi/coco-sml/src/api/config/di"
 	"github.com/a-digi/coco-sml/src/api/response"
 )
 
-// statusHandler handles GET /v1/status requests
-func StatusHandler(w http.ResponseWriter, r *http.Request, dbServer *binary.Server) {
+// StatusHandler handles GET /v1/status requests
+func StatusHandler(w http.ResponseWriter, r *http.Request, serviceBag *di.ServiceBag) {
 	w.Header().Set("Content-Type", "application/json")
 	if r.Method != http.MethodGet {
 		w.WriteHeader(http.StatusMethodNotAllowed)

@@ -3,32 +3,32 @@ package routes
 import (
 	"net/http"
 
-	"github.com/a-digi/coco-sml/src/db/binary"
+	"github.com/a-digi/coco-sml/src/api/config/di"
 )
 
 // RouteBuilder helps to register API routes and handlers
 
 type RouteBuilder struct {
-	mux      *http.ServeMux
-	DbServer *binary.Server
+	mux        *http.ServeMux
+	ServiceBag *di.ServiceBag
 }
 
-// NewRouteBuilder creates a new RouteBuilder with a fresh ServeMux and expects a Server argument
-func NewRouteBuilder(server *binary.Server) *RouteBuilder {
+// NewRouteBuilder creates a new RouteBuilder with a fresh ServeMux and expects a ServiceBag argument
+func NewRouteBuilder(serviceBag *di.ServiceBag) *RouteBuilder {
 
 	return &RouteBuilder{
-		mux:      http.NewServeMux(),
-		DbServer: server,
+		mux:        http.NewServeMux(),
+		ServiceBag: serviceBag,
 	}
 }
 
-// ServerHandlerFunc is a handler function that has access to the binary.Server
-type ServerHandlerFunc func(w http.ResponseWriter, r *http.Request, srv *binary.Server)
+// ServiceBagHandlerFunc is a handler function that has access to the ServiceBag
+type ServiceBagHandlerFunc func(w http.ResponseWriter, r *http.Request, sb *di.ServiceBag)
 
-// Handle registers a handler for a given pattern, providing DbServer as additional argument
-func (rb *RouteBuilder) Handle(pattern string, handler ServerHandlerFunc) {
+// Handle registers a handler for a given pattern, providing ServiceBag as additional argument
+func (rb *RouteBuilder) Handle(pattern string, handler ServiceBagHandlerFunc) {
 	rb.mux.HandleFunc(pattern, func(w http.ResponseWriter, r *http.Request) {
-		handler(w, r, rb.DbServer)
+		handler(w, r, rb.ServiceBag)
 	})
 }
 

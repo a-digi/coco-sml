@@ -19,7 +19,7 @@ func BcryptVerifyPassword(password, hashed string) bool {
 
 type BcryptEncode struct{}
 
-func (b *BcryptEncode) PasswordEncrypt(password string) (string, error) {
+func (b *BcryptEncode) PasswordEncode(password string) (string, error) {
 	return BcryptHashPassword(password)
 }
 
@@ -30,7 +30,7 @@ func (b *BcryptVerify) PasswordVerify(password string, hash string) bool {
 }
 
 type BcryptManager struct {
-	Encoder  PasswordEncrypt
+	Encoder  PasswordEncode
 	Verifier PasswordVerifier
 }
 

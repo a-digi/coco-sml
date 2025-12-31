@@ -1,7 +1,6 @@
 package db
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 	"github.com/a-digi/coco-sml/src/api/config/di"
@@ -55,7 +54,9 @@ func DatabaseListTablesHandler(w http.ResponseWriter, r *http.Request, serviceBa
 	}
 
 	log.Printf("[DatabaseListTablesHandler] Returning %d tables\n", len(tables))
-	json.NewEncoder(w).Encode(map[string]interface{}{
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(response.SuccessResponse(map[string]interface{}{
 		"tables": tables,
-	})
+	}))
 }

@@ -12,7 +12,6 @@ import (
 	"syscall"
 	"time"
 	"github.com/a-digi/coco-sml/src/server/process"
-	"github.com/a-digi/coco-sml/src/api"
 	"github.com/a-digi/coco-sml/src/api/config"
 	"github.com/a-digi/coco-sml/src/db/binary"
     "github.com/a-digi/coco-sml/src/api/config/routes"
@@ -54,7 +53,7 @@ func StartServerWithConfig(cfg *Config) {
 
 	rb := routes.NewRouteBuilder(serverInstance)
 	config.SetupApi(serverInstance)
-	api.RegisterRoutes(rb)
+	routes.RegisterRoutes(rb)
 
 	server := &http.Server{
 		Addr: fmt.Sprintf(":%d", cfg.Port),

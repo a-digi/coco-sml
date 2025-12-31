@@ -3,6 +3,7 @@ package binary
 import (
 	"encoding/gob"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"time"
@@ -236,6 +237,7 @@ func (s *Server) FindDatabase(name string) (DatabaseMeta, error) {
 
 // ListTables returns all tables (with full metadata) in the database.
 func (db *Database) ListTables() ([]Table, error) {
+	log.Printf("[Database] ListTables called for DB: %s\n", db.Name)
 	return ListTables(db.Name)
 }
 

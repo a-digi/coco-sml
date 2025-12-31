@@ -243,10 +243,22 @@ func (s *Server) FindDatabase(name string) (DatabaseMeta, error) {
 	return DatabaseMeta{}, fmt.Errorf("database '%s' not found", name)
 }
 
-// ListTables returns all tables (with full metadata) in the database.
-func (db *Database) ListTables() ([]Table, error) {
-	log.Printf("[Database] ListTables called for DB: %s\n", db.Name)
-	return ListTables(db.Name)
+// ListTables returns all tables (with full metadata) in the database as a Result (success or error).
+func (db *Database) ListTablesResult() Result {
+	start := time.Now()
+	tables, err := ListTables(db.Name)
+	duration := float64(time.Since(start).Milliseconds())
+
+	if err != nil {
+		return ResultError("list_tables", duration)
+	}
+
+	results := make([]interface{}, len(tables))
+	for i, t := range tables {
+		results[i] = t
+	}
+
+	return ResultSuccess(results, "list_tables", duration)
 }
 
 // ErrInvalidDatabaseName is returned when the database name contains invalid characters.

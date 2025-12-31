@@ -205,3 +205,21 @@ func GetTableFields(tables []TableMeta, tableName string) ([]string, error) {
 
 	return nil, fmt.Errorf("table '%s' not found", tableName)
 }
+
+// ListTables returns all tables (with full metadata) in the given data directory.
+func ListTables(dataDir string) ([]Table, error) {
+	metaPath := filepath.Join(dataDir, metaFileName)
+	metaFile, err := os.Open(metaPath)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to open metadata: %w", err)
+	}
+	defer metaFile.Close()
+
+	var meta TablesMeta
+	if err := gob.NewDecoder(metaFile).Decode(&meta); err != nil {
+		return nil, fmt.Errorf("failed to decode metadata: %w", err)
+	}
+
+	return meta.Tables, nil
+}

@@ -234,6 +234,11 @@ func (s *Server) FindDatabase(name string) (DatabaseMeta, error) {
 	return DatabaseMeta{}, fmt.Errorf("database '%s' not found", name)
 }
 
+// ListTables returns all tables (with full metadata) in the database.
+func (db *Database) ListTables() ([]Table, error) {
+	return ListTables(db.Name)
+}
+
 // ErrInvalidDatabaseName is returned when the database name contains invalid characters.
 var ErrInvalidDatabaseName = os.ErrInvalid
 

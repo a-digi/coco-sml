@@ -15,6 +15,7 @@ import (
 	"github.com/a-digi/coco-sml/src/api"
 	"github.com/a-digi/coco-sml/src/api/config"
 	"github.com/a-digi/coco-sml/src/db/binary"
+    "github.com/a-digi/coco-sml/src/api/config/routes"
 )
 
 // StartServer starts the HTTP API server
@@ -51,7 +52,7 @@ func StartServerWithConfig(cfg *Config) {
 		log.Fatalf("Failed to start database server: %v", err)
 	}
 
-	rb := config.NewRouteBuilder(serverInstance)
+	rb := routes.NewRouteBuilder(serverInstance)
 	config.SetupApi(serverInstance)
 	api.RegisterRoutes(rb)
 

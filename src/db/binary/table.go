@@ -223,3 +223,12 @@ func ListTables(dataDir string) ([]Table, error) {
 
 	return meta.Tables, nil
 }
+
+// TableMetaSliceToInterface converts a []TableMeta to a []interface{} for use in Result.
+func TableMetaSliceToInterface(metas []TableMeta) []interface{} {
+	results := make([]interface{}, len(metas))
+	for i, m := range metas {
+		results[i] = m
+	}
+	return results
+}

@@ -98,11 +98,7 @@ func (db *Database) LoadTableMeta() Result {
 	if err != nil {
 		return ResultError("load_table_meta", duration)
 	}
-	// Convert []TableMeta to []interface{} for Result
-	results := make([]interface{}, len(metas))
-	for i, m := range metas {
-		results[i] = m
-	}
+	results := TableMetaSliceToInterface(metas)
 	return ResultSuccess(results, "load_table_meta", duration)
 }
 

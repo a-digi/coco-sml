@@ -90,8 +90,20 @@ func (s *Server) Database(dbName string) (*Database, error) {
 }
 
 // LoadTableMeta loads the metadata for all tables from tables.meta in the database directory using the shared logic from table.go.
-func (db *Database) LoadTableMeta() ([]TableMeta, error) {
-	return LoadTableMeta(db.Name)
+// It returns a Result struct with status, results, action, and time taken.
+func (db *Database) LoadTableMeta() Result {
+	start := time.Now()
+	metas, err := LoadTableMeta(db.Name)
+	duration := float64(time.Since(start).Milliseconds())
+	if err != nil {
+		return ResultError("load_table_meta", duration)
+	}
+	// Convert []TableMeta to []interface{} for Result
+	results := make([]interface{}, len(metas))
+	for i, m := range metas {
+		results[i] = m
+	}
+	return ResultSuccess(results, "load_table_meta", duration)
 }
 
 // Select parses the SQL string query, then executes it using the shared ExecuteSelect logic from select.go.

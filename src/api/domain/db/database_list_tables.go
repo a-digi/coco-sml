@@ -35,7 +35,6 @@ func DatabaseListTablesHandler(w http.ResponseWriter, r *http.Request, serviceBa
 		return
 	}
 
-	log.Printf("[DatabaseListTablesHandler] Getting EntityManager for db: %s\n", dbName)
 	entityManager, err := rm.GetManager(dbName)
 	if err != nil {
 		log.Printf("[DatabaseListTablesHandler] Database not found: %v\n", err)
@@ -44,19 +43,8 @@ func DatabaseListTablesHandler(w http.ResponseWriter, r *http.Request, serviceBa
 		return
 	}
 
-	log.Println("[DatabaseListTablesHandler] Calling ListTables on EntityManager")
-	tables, err := entityManager.ListTables()
-	if err != nil {
-		log.Printf("[DatabaseListTablesHandler] Failed to list tables: %v\n", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write(response.ErrorResponse("Failed to list tables: " + err.Error()))
-		return
-	}
-
-	log.Printf("[DatabaseListTablesHandler] Returning %d tables\n", len(tables))
+	result := entityManager.ListTablesResult()
 
 	w.WriteHeader(http.StatusOK)
-	w.Write(response.SuccessResponse(map[string]interface{}{
-		"tables": tables,
-	}))
+	w.Write(response.SuccessResponse(result))
 }

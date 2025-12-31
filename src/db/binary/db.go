@@ -3,7 +3,6 @@ package binary
 import (
 	"encoding/gob"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"time"

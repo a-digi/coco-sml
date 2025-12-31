@@ -1,7 +1,6 @@
 package orm
 
 import (
-	"errors"
 	"github.com/a-digi/coco-sml/src/db/binary"
 	"log"
 )
@@ -18,17 +17,14 @@ func NewEntityManager(db *binary.Database) *EntityManager {
 	}
 }
 
-// ListTables returns all tables (with full metadata) in the database managed by this EntityManager.
-func (em *EntityManager) ListTables() ([]binary.Table, error) {
-	log.Println("[EntityManager] ListTables called")
+// ListTables returns all tables (with full metadata) in the database managed by this EntityManager as a Result.
+func (em *EntityManager) ListTablesResult() binary.Result {
+	log.Println("[EntityManager] ListTablesResult called")
 	if em.Database == nil {
 		log.Println("[EntityManager] Database is not initialized")
-		return nil, errors.New("database is not initialized")
+		return binary.ResultError("list_tables", 0)
 	}
-	log.Printf("[EntityManager] Calling ListTables on Database: %s\n", em.Database.Name)
-	tables, err := em.Database.ListTables()
-	if err != nil {
-		log.Printf("[EntityManager] Database.ListTables error: %v\n", err)
-	}
-	return tables, err
+
+	log.Printf("[EntityManager] Calling ListTablesResult on Database: %s\n", em.Database.Name)
+	return em.Database.ListTablesResult()
 }

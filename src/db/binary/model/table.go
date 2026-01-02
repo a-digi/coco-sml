@@ -76,8 +76,16 @@ func (dt *DataType) UnmarshalJSON(data []byte) error {
 // ParseDataType wandelt einen SQL-Feldtyp-String in einen DataType um.
 func ParseDataType(fieldType string) (DataType, error) {
 	fieldType = strings.ToLower(fieldType)
+	fieldType = strings.ReplaceAll(fieldType, " ", "")
 	if dt, ok := typeMap[fieldType]; ok {
 		return dt, nil
+	}
+
+	if strings.HasPrefix(fieldType, "varchar(") && strings.HasSuffix(fieldType, ")") {
+		numStr := fieldType[len("varchar(") : len(fieldType)-1]
+		if _, err := fmt.Sscanf(numStr, "%d", new(int)); err == nil && numStr != "" {
+			return VarcharType, nil
+		}
 	}
 
 	return 0, fmt.Errorf("unsupported field type: %s", fieldType)

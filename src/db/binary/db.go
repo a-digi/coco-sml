@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/a-digi/coco-sml/src/db/binary/performance"
 	"github.com/a-digi/coco-sml/src/db/binary/sql"
 )
 
@@ -91,14 +92,15 @@ func (s *Server) Database(dbName string) (*Database, error) {
 // LoadTableMeta loads the metadata for all tables from tables.meta in the database directory using the shared logic from table.go.
 // It returns a Result struct with status, results, action, and time taken.
 func (db *Database) LoadTableMeta() Result {
-	start := time.Now()
+	perf := performance.NewPerformanceTracker()
+	perf.AddTrackPoint("load_table_meta")
 	metas, err := LoadTableMeta(db.Name)
-	duration := float64(time.Since(start).Milliseconds())
+	perf.EndTrackPoint("load_table_meta")
 	if err != nil {
-		return ResultError("load_table_meta", duration)
+		return ResultError("load_table_meta", perf)
 	}
 	results := TableMetaSliceToInterface(metas)
-	return ResultSuccess(results, "load_table_meta", duration)
+	return ResultSuccess(results, "load_table_meta", perf)
 }
 
 // Select parses the SQL string query, then executes it using the shared ExecuteSelect logic from select.go.
@@ -244,12 +246,13 @@ func (s *Server) FindDatabase(name string) (DatabaseMeta, error) {
 
 // ListTables returns all tables (with full metadata) in the database as a Result (success or error).
 func (db *Database) ListTablesResult() Result {
-	start := time.Now()
+	perf := performance.NewPerformanceTracker()
+	perf.AddTrackPoint("list_tables")
 	tables, err := ListTables(db.Name)
-	duration := float64(time.Since(start).Milliseconds())
+	perf.EndTrackPoint("list_tables")
 
 	if err != nil {
-		return ResultError("list_tables", duration)
+		return ResultError("list_tables", perf)
 	}
 
 	results := make([]interface{}, len(tables))
@@ -257,7 +260,7 @@ func (db *Database) ListTablesResult() Result {
 		results[i] = t
 	}
 
-	return ResultSuccess(results, "list_tables", duration)
+	return ResultSuccess(results, "list_tables", perf)
 }
 
 // ErrInvalidDatabaseName is returned when the database name contains invalid characters.

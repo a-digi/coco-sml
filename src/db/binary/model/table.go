@@ -88,7 +88,6 @@ func (dt *DataType) UnmarshalJSON(data []byte) error {
 type Field struct {
 	Name         string      `json:"name"`
 	DataType     DataType    `json:"dataType"`
-	MinLength    int         `json:"minLength"`
 	MaxLength    int         `json:"maxLength"`
 	Nullable     bool        `json:"nullable"`
 	DefaultValue interface{} `json:"defaultValue,omitempty"`

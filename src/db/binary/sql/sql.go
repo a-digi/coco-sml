@@ -177,6 +177,8 @@ func ParseTableSQL(query string) (*model.Table, error) {
 			dt = model.UUIDType
 		case "JSON", "json":
 			dt = model.JSONType
+		case "VARCHAR", "varchar":
+			dt = model.VarcharType
 		default:
 			return nil, fmt.Errorf("unsupported field type: %s", fieldType)
 		}

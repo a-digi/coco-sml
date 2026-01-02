@@ -9,8 +9,8 @@ import (
 type DataType int
 
 const (
-	StringType DataType = iota
-	IntType
+	// StringType entfernt
+	IntType DataType = iota
 	FloatType
 	BoolType
 	DateType
@@ -23,8 +23,7 @@ const (
 
 func (dt DataType) String() string {
 	switch dt {
-	case StringType:
-		return "string"
+	// case StringType: entfernt
 	case IntType:
 		return "int"
 	case FloatType:
@@ -58,8 +57,7 @@ func (dt *DataType) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	switch s {
-	case "string":
-		*dt = StringType
+	// case "string": entfernt
 	case "int":
 		*dt = IntType
 	case "float":
@@ -79,7 +77,7 @@ func (dt *DataType) UnmarshalJSON(data []byte) error {
 	case "varchar":
 		*dt = VarcharType
 	default:
-		*dt = StringType
+		*dt = IntType
 	}
 	return nil
 }

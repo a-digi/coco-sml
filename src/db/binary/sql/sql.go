@@ -159,8 +159,6 @@ func ParseTableSQL(query string) (*model.Table, error) {
 		pos++
 		var dt model.DataType
 		switch fieldType {
-		case "STRING", "string":
-			dt = model.StringType
 		case "INT", "int":
 			dt = model.IntType
 		case "FLOAT", "float":

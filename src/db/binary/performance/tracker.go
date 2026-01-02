@@ -4,10 +4,10 @@ import "time"
 
 // PerformanceTrack hält Informationen über den Start- und Endzeitpunkt sowie eine ID für einen Prozess.
 type PerformanceTrack struct {
-	StartedAt   time.Time `json:"started_at"`
-	EndedAt     time.Time `json:"ended_at"`
+	StartedAt   time.Time
+	EndedAt     time.Time
 	Id          string    `json:"id"`
-	DurationNS  float64   `json:"duration_ns"` // Dauer in Nanosekunden als float64
+	DurationMS  float64   `json:"duration_ms"` // Dauer in Millisekunden als float64
 }
 
 // CreatePerformanceTrack erstellt einen neuen PerformanceTrack mit Startzeitpunkt und ID.
@@ -21,12 +21,12 @@ func CreatePerformanceTrack(id string) *PerformanceTrack {
 // End markiert das Ende des Prozesses.
 func (pt *PerformanceTrack) End() {
 	pt.EndedAt = time.Now()
-	pt.DurationNS = float64(pt.EndedAt.Sub(pt.StartedAt).Nanoseconds())
+	pt.DurationMS = float64(pt.EndedAt.Sub(pt.StartedAt).Nanoseconds()) / 1e6
 }
 
 // Milliseconds gibt die Dauer in Millisekunden zurück.
 func (pt *PerformanceTrack) Milliseconds() float64 {
-	return float64(pt.DurationNS) / 1e6
+	return pt.DurationMS
 }
 
 // PerformanceTracker manages a collection of PerformanceTrack and allows lookup by ID.

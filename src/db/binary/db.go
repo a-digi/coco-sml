@@ -3,7 +3,6 @@ package binary
 import (
 	"encoding/gob"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"time"
@@ -248,16 +247,11 @@ func (s *Server) FindDatabase(name string) (DatabaseMeta, error) {
 // ListTables returns all tables (with full metadata) in the database as a Result (success or error).
 func (db *Database) ListTablesResult() Result {
 	perf := performance.NewPerformanceTracker()
-	log.Println("[Performance] Start tracking: list_tables")
 	perf.AddTrackPoint("list_tables")
-
 	tables, err := ListTables(db.Name)
-
 	perf.EndTrackPoint("list_tables")
-	log.Printf("[Performance] End tracking: list_tables | DurationNS: %v | DurationMS: %.3f\n", perf.GetTrackPointByID("list_tables").DurationNS, perf.GetTrackPointByID("list_tables").Milliseconds())
 
 	if err != nil {
-		log.Printf("[Performance] ListTablesResult error: %v\n", err)
 		return ResultError("list_tables", perf)
 	}
 
@@ -266,7 +260,6 @@ func (db *Database) ListTablesResult() Result {
 		results[i] = t
 	}
 
-	log.Printf("[Performance] ListTablesResult success: %d tables listed\n", len(tables))
 	return ResultSuccess(results, "list_tables", perf)
 }
 

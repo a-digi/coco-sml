@@ -263,6 +263,16 @@ func (db *Database) ListTablesResult() Result {
 	return ResultSuccess(results, "list_tables", perf)
 }
 
+// CreateTable creates a new table in the database using a CREATE TABLE SQL string.
+func (db *Database) CreateTable(sqlString string) error {
+	table, err := sql.ParseTableSQL(sqlString)
+	if err != nil {
+		return err
+	}
+
+	return CreateTable(db.Name, *table)
+}
+
 // ErrInvalidDatabaseName is returned when the database name contains invalid characters.
 var ErrInvalidDatabaseName = os.ErrInvalid
 

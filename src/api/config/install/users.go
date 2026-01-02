@@ -14,21 +14,17 @@ func SetupUserTable(server *binary.Server) {
 		return
 	}
 
-	// Define the user table schema
-	table := binary.Table{
-		Name:        "user",
-		Description: "User table for authentication",
-		Fields: []binary.Field{
-			{Name: "id", DataType: binary.UUIDType},
-			{Name: "username", DataType: binary.StringType, MinLength: 1, MaxLength: 255, Required: true},
-			{Name: "password", DataType: binary.StringType, MinLength: 1, MaxLength: 255, Required: true},
-			{Name: "createdAt", DataType: binary.DateTimeType, Required: true, DefaultValue: "now"},
-			{Name: "isActive", DataType: binary.BoolType, DefaultValue: true},
-		},
-	}
+	// Define the user table schema as a SQL string
+	sql := `CREATE TABLE user (
+		id UUID,
+		username STRING,
+		password STRING,
+		createdAt DATETIME,
+		isActive BOOL
+	);`
 
-	// Try to create the table (ignore error if it already exists)
-	err = binary.CreateTable(db.Name, table)
+	// Try to create the table using db.CreateTable (ignore error if it already exists)
+	err = db.CreateTable(sql)
 	if err != nil {
 		if err.Error() == "table already exists" {
 			return
@@ -46,26 +42,22 @@ func SetupRootUserTable(server *binary.Server) {
 		return
 	}
 
-	// Define the admin_user table schema
-	table := binary.Table{
-		Name:        "root_user",
-		Description: "Root user table for system administrators",
-		Fields: []binary.Field{
-			{Name: "id", DataType: binary.UUIDType},
-			{Name: "username", DataType: binary.StringType, MinLength: 1, MaxLength: 255, Required: true},
-			{Name: "password", DataType: binary.StringType, MinLength: 1, MaxLength: 255, Required: true},
-			{Name: "email", DataType: binary.StringType, MinLength: 1, MaxLength: 255, Required: true},
-			{Name: "createdAt", DataType: binary.DateTimeType, DefaultValue: "now"},
-			{Name: "isActive", DataType: binary.BoolType, DefaultValue: true},
-		},
-	}
+	// Define the admin_user table schema as a SQL string
+	sql := `CREATE TABLE root_user (
+		id UUID,
+		username STRING,
+		password STRING,
+		email STRING,
+		createdAt DATETIME,
+		isActive BOOL
+	);`
 
-	// Try to create the table (ignore error if it already exists)
-	err = binary.CreateTable(db.Name, table)
+	// Try to create the table using db.CreateTable (ignore error if it already exists)
+	err = db.CreateTable(sql)
 	if err != nil {
 		if err.Error() == "table already exists" {
 			return
 		}
-		log.Printf("[SetupAdminUserTable] Failed to create 'admin_user' table: %v\n", err)
+		log.Printf("[SetupAdminUserTable] Failed to create 'root_user' table: %v\n", err)
 	}
 }

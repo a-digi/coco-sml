@@ -13,6 +13,8 @@ type LexerToken struct {
 
 // Token types for SQL parsing.
 const (
+	TokenCreate    = "CREATE"
+	TokenTable     = "TABLE"
 	TokenSelect    = "SELECT"
 	TokenFrom      = "FROM"
 	TokenWhere     = "WHERE"
@@ -145,9 +147,13 @@ func Lexer(input string) []LexerToken {
 			for unicode.IsLetter(peek()) || unicode.IsDigit(peek()) || peek() == '_' {
 				next()
 			}
-			val := string(runes[start-1 : pos])
+			val := string(runes[start:pos]) // FIX: use start:pos, not start-1:pos
 			upper := strings.ToUpper(val)
 			switch upper {
+			case "CREATE":
+				tokens = append(tokens, LexerToken{Type: TokenCreate, Value: val})
+			case "TABLE":
+				tokens = append(tokens, LexerToken{Type: TokenTable, Value: val})
 			case "SELECT":
 				tokens = append(tokens, LexerToken{Type: TokenSelect, Value: val})
 			case "FROM":

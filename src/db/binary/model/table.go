@@ -18,6 +18,7 @@ const (
 	BinaryType
 	UUIDType
 	JSONType
+	VarcharType // hinzugefügt
 )
 
 func (dt DataType) String() string {
@@ -40,6 +41,8 @@ func (dt DataType) String() string {
 		return "uuid"
 	case JSONType:
 		return "json"
+	case VarcharType:
+		return "varchar"
 	default:
 		return "unknown"
 	}
@@ -73,6 +76,8 @@ func (dt *DataType) UnmarshalJSON(data []byte) error {
 		*dt = UUIDType
 	case "json":
 		*dt = JSONType
+	case "varchar":
+		*dt = VarcharType
 	default:
 		*dt = StringType
 	}

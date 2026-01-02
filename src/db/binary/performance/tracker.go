@@ -31,13 +31,13 @@ func (pt *PerformanceTrack) Milliseconds() float64 {
 
 // PerformanceTracker manages a collection of PerformanceTrack and allows lookup by ID.
 type PerformanceTracker struct {
-	trackPoints map[string]*PerformanceTrack `json:"trackPoints"`
+	TrackPoints map[string]*PerformanceTrack `json:"trackPoints"`
 }
 
 // NewPerformanceTracker creates a new PerformanceTracker.
 func NewPerformanceTracker() *PerformanceTracker {
 	return &PerformanceTracker{
-		trackPoints: make(map[string]*PerformanceTrack),
+		TrackPoints: make(map[string]*PerformanceTrack),
 	}
 }
 
@@ -47,13 +47,13 @@ func (pt *PerformanceTracker) AddTrackPoint(id string) *PerformanceTrack {
 		StartedAt: time.Now(),
 		Id:        id,
 	}
-	pt.trackPoints[id] = track
+	pt.TrackPoints[id] = track
 	return track
 }
 
 // GetTrackPointByID returns the PerformanceTrack with the given ID, or nil if not found.
 func (pt *PerformanceTracker) GetTrackPointByID(id string) *PerformanceTrack {
-	track, ok := pt.trackPoints[id]
+	track, ok := pt.TrackPoints[id]
 	if !ok {
 		return nil
 	}
@@ -63,7 +63,7 @@ func (pt *PerformanceTracker) GetTrackPointByID(id string) *PerformanceTrack {
 // EndTrackPoint ends the tracking for the given ID by calling End() on the corresponding PerformanceTrack.
 // Returns true if the track point was found and ended, false otherwise.
 func (pt *PerformanceTracker) EndTrackPoint(id string) bool {
-	track, ok := pt.trackPoints[id]
+	track, ok := pt.TrackPoints[id]
 	if !ok {
 		return false
 	}

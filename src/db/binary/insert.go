@@ -1,5 +1,12 @@
 package binary
 
+import (
+	"github.com/a-digi/coco-sml/src/db/binary/insert/event"
+	"github.com/a-digi/coco-sml/src/db/binary/model"
+	"github.com/a-digi/coco-sml/src/db/binary/sql"
+	"time"
+)
+
 /*
 Event Triggering and Processing Overview
 
@@ -23,76 +30,23 @@ Event-sourced data insertion and processing will be handled internally using Go 
 Note: All event flow, consumption, and status tracking are handled within the Go application using internal queues (channels) and backend consumers (goroutines). No REST API endpoints are provided for these operations.
 */
 
-import (
-	"fmt"
-
-	"github.com/a-digi/coco-sml/src/db/binary/insert/event"
-	"github.com/a-digi/coco-sml/src/db/binary/model"
-)
-
-// InsertToTable inserts the event payload into the target table
-func InsertToTable(event model.InsertEvent) error {
-	// Step 1: Validate payload
-	if event.Table == "" {
-		return fmt.Errorf("table name is required")
-	}
-	if event.Payload == "" {
-		return fmt.Errorf("payload is empty")
-	}
-
-	// Step 2: Parse payload (placeholder)
-	// TODO: Replace with actual SQL/row parsing logic
-	// Example: parse INSERT statement or row data
-	parsedData, err := parseInsertPayload(event.Payload)
+// Insert parses an SQL string, creates an event, and returns a result.Result (success or error).
+func Insert(sqlString string) Result {
+	parsed, err := sql.ParseInsertSQL(sqlString)
 	if err != nil {
-		return fmt.Errorf("failed to parse payload: %w", err)
+		return ResultError("insert", nil)
 	}
 
-	// Step 3: Map to table schema (placeholder)
-	// TODO: Validate parsedData against table schema
-	// Example: check required columns, types, etc.
-	if err := validateAgainstSchema(event.Table, parsedData); err != nil {
-		return fmt.Errorf("schema validation failed: %w", err)
+	evt := model.InsertEvent{
+		Table:     parsed.Table,
+		Payload:   sqlString,
+		Timestamp: time.Now(),
 	}
 
-	// Step 4: Insert into internal DB (placeholder)
-	// TODO: Call your actual DB insert logic here
-	if err := insertRowToTable(event.Table, parsedData); err != nil {
-		return fmt.Errorf("insert failed: %w", err)
+	err = event.EnqueueInsert(evt.Table, evt.Payload)
+	if err != nil {
+		return ResultError("insert", nil)
 	}
 
-	return nil
-}
-
-// parseInsertPayload parses the payload into a generic map (stub)
-func parseInsertPayload(payload string) (map[string]interface{}, error) {
-	// TODO: Implement real parsing logic
-	// For now, just return a dummy map
-	return map[string]interface{}{"raw": payload}, nil
-}
-
-// validateAgainstSchema validates parsed data against the table schema (stub)
-func validateAgainstSchema(table string, data map[string]interface{}) error {
-	// TODO: Implement real schema validation
-	return nil
-}
-
-// insertRowToTable inserts the parsed data into the internal DB (stub)
-func insertRowToTable(table string, data map[string]interface{}) error {
-	// TODO: Implement real DB insert logic
-	fmt.Printf("[DB] Inserted into %s: %v\n", table, data)
-	return nil
-}
-
-// StartInsertTableConsumer launches a goroutine to process table inserts via channel
-func StartInsertTableConsumer() {
-	go func() {
-		for event := range event.GetInsertTableQueue() {
-			err := InsertToTable(event)
-			if err != nil {
-				fmt.Printf("Error inserting event to table: %v\n", err)
-				continue
-			}
-		}
-	}()
+	return ResultSuccess([]interface{}{}, "insert", nil)
 }

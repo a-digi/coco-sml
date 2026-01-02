@@ -12,13 +12,13 @@ type InsertSQL struct {
 	Values []interface{}
 }
 
-// ParseInsertSQL parses a basic INSERT SQL statement using the lexer and returns InsertSQL.
+// ParseInsertSQL parses a basic INSERT SQL statement using the package's Lexer and returns InsertSQL.
 // Example: INSERT INTO users (id, name, age) VALUES (1, 'Alice', 30);
-func ParseInsertSQL(query string, lexer func(string) []interface{}) (*InsertSQL, error) {
-	tokens := lexer(query)
+func ParseInsertSQL(query string) (*InsertSQL, error) {
+	tokens := Lexer(query)
 	pos := 0
 	consume := func(expected string) bool {
-		if pos < len(tokens) && tokens[pos].(map[string]interface{})["Type"] == expected {
+		if pos < len(tokens) && tokens[pos].Type == expected {
 			pos++
 			return true
 		}
@@ -33,24 +33,24 @@ func ParseInsertSQL(query string, lexer func(string) []interface{}) (*InsertSQL,
 		return nil, fmt.Errorf("expected INTO keyword")
 	}
 	// table name
-	if tokens[pos].(map[string]interface{})["Type"] != "IDENT" {
+	if tokens[pos].Type != "IDENT" {
 		return nil, fmt.Errorf("expected table name")
 	}
-	table := tokens[pos].(map[string]interface{})["Value"].(string)
+	table := tokens[pos].Value
 	pos++
 	// fields (optional)
 	fields := []string{}
-	if tokens[pos].(map[string]interface{})["Type"] == "(" {
+	if tokens[pos].Type == "(" {
 		pos++
 		for {
-			if tokens[pos].(map[string]interface{})["Type"] == "IDENT" {
-				fields = append(fields, tokens[pos].(map[string]interface{})["Value"].(string))
+			if tokens[pos].Type == "IDENT" {
+				fields = append(fields, tokens[pos].Value)
 				pos++
-				if tokens[pos].(map[string]interface{})["Type"] == "," {
+				if tokens[pos].Type == "," {
 					pos++
 					continue
 				}
-				if tokens[pos].(map[string]interface{})["Type"] == ")" {
+				if tokens[pos].Type == ")" {
 					pos++
 					break
 				}
@@ -65,32 +65,33 @@ func ParseInsertSQL(query string, lexer func(string) []interface{}) (*InsertSQL,
 		return nil, fmt.Errorf("expected VALUES keyword")
 	}
 	// values
-	if tokens[pos].(map[string]interface{})["Type"] != "(" {
+	if tokens[pos].Type != "(" {
 		return nil, fmt.Errorf("expected '(' before values")
 	}
 	pos++
 	values := []interface{}{}
 	for {
-		tok := tokens[pos].(map[string]interface{})
-		if tok["Type"] == "STRING" {
-			values = append(values, tok["Value"])
+		tok := tokens[pos]
+		if tok.Type == "STRING" {
+			values = append(values, tok.Value)
 			pos++
-		} else if tok["Type"] == "NUMBER" {
-			values = append(values, tok["Value"])
+		} else if tok.Type == "NUMBER" {
+			values = append(values, tok.Value)
 			pos++
-		} else if tok["Type"] == "IDENT" {
-			values = append(values, tok["Value"])
+		} else if tok.Type == "IDENT" {
+			values = append(values, tok.Value)
 			pos++
-		} else if tok["Type"] == "," {
+		} else if tok.Type == "," {
 			pos++
 			continue
-		} else if tok["Type"] == ")" {
+		} else if tok.Type == ")" {
 			pos++
 			break
 		} else {
-			return nil, fmt.Errorf("unexpected token in values list: %v", tok["Type"])
+			return nil, fmt.Errorf("unexpected token in values list: %v", tok.Type)
 		}
 	}
+
 	return &InsertSQL{Table: table, Fields: fields, Values: values}, nil
 }
 

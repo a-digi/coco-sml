@@ -85,28 +85,30 @@ func (dt *DataType) UnmarshalJSON(data []byte) error {
 
 // ParseDataType wandelt einen SQL-Feldtyp-String in einen DataType um.
 func ParseDataType(fieldType string) (DataType, error) {
-	switch fieldType {
-	case "INT", "int":
-		return IntType, nil
-	case "FLOAT", "float":
-		return FloatType, nil
-	case "BOOL", "bool":
-		return BoolType, nil
-	case "DATE", "date":
-		return DateType, nil
-	case "DATETIME", "datetime":
-		return DateTimeType, nil
-	case "BINARY", "binary":
-		return BinaryType, nil
-	case "UUID", "uuid":
-		return UUIDType, nil
-	case "JSON", "json":
-		return JSONType, nil
-	case "VARCHAR", "varchar":
-		return VarcharType, nil
-	default:
-		return 0, fmt.Errorf("unsupported field type: %s", fieldType)
+	typeMap := map[string]DataType{
+		"INT":      IntType,
+		"int":      IntType,
+		"FLOAT":    FloatType,
+		"float":    FloatType,
+		"BOOL":     BoolType,
+		"bool":     BoolType,
+		"DATE":     DateType,
+		"date":     DateType,
+		"DATETIME": DateTimeType,
+		"datetime": DateTimeType,
+		"BINARY":   BinaryType,
+		"binary":   BinaryType,
+		"UUID":     UUIDType,
+		"uuid":     UUIDType,
+		"JSON":     JSONType,
+		"json":     JSONType,
+		"VARCHAR":  VarcharType,
+		"varchar":  VarcharType,
 	}
+	if dt, ok := typeMap[fieldType]; ok {
+		return dt, nil
+	}
+	return 0, fmt.Errorf("unsupported field type: %s", fieldType)
 }
 
 // Field represents a schema field for a table, including type and validation metadata.

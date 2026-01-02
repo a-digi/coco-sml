@@ -23,30 +23,35 @@ const (
 	VarcharType // hinzugefügt
 )
 
+var typeStringMap = map[DataType]string{
+	IntType:      "int",
+	FloatType:    "float",
+	BoolType:     "bool",
+	DateType:     "date",
+	DateTimeType: "datetime",
+	BinaryType:   "binary",
+	UUIDType:     "uuid",
+	JSONType:     "json",
+	VarcharType:  "varchar",
+}
+
+var typeMap = map[string]DataType{
+	"int":      IntType,
+	"float":    FloatType,
+	"bool":     BoolType,
+	"date":     DateType,
+	"datetime": DateTimeType,
+	"binary":   BinaryType,
+	"uuid":     UUIDType,
+	"json":     JSONType,
+	"varchar":  VarcharType,
+}
+
 func (dt DataType) String() string {
-	switch dt {
-	// case StringType: entfernt
-	case IntType:
-		return "int"
-	case FloatType:
-		return "float"
-	case BoolType:
-		return "bool"
-	case DateType:
-		return "date"
-	case DateTimeType:
-		return "datetime"
-	case BinaryType:
-		return "binary"
-	case UUIDType:
-		return "uuid"
-	case JSONType:
-		return "json"
-	case VarcharType:
-		return "varchar"
-	default:
-		return "unknown"
+	if s, ok := typeStringMap[dt]; ok {
+		return s
 	}
+	return "unknown"
 }
 
 func (dt DataType) MarshalJSON() ([]byte, error) {
@@ -71,19 +76,6 @@ func (dt *DataType) UnmarshalJSON(data []byte) error {
 // ParseDataType wandelt einen SQL-Feldtyp-String in einen DataType um.
 func ParseDataType(fieldType string) (DataType, error) {
 	fieldType = strings.ToLower(fieldType)
-
-	typeMap := map[string]DataType{
-		"int":      IntType,
-		"float":    FloatType,
-		"bool":     BoolType,
-		"date":     DateType,
-		"datetime": DateTimeType,
-		"binary":   BinaryType,
-		"uuid":     UUIDType,
-		"json":     JSONType,
-		"varchar":  VarcharType,
-	}
-
 	if dt, ok := typeMap[fieldType]; ok {
 		return dt, nil
 	}

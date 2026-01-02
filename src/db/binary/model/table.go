@@ -2,6 +2,7 @@ package model
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 )
 
@@ -80,6 +81,32 @@ func (dt *DataType) UnmarshalJSON(data []byte) error {
 		*dt = IntType
 	}
 	return nil
+}
+
+// ParseDataType wandelt einen SQL-Feldtyp-String in einen DataType um.
+func ParseDataType(fieldType string) (DataType, error) {
+	switch fieldType {
+	case "INT", "int":
+		return IntType, nil
+	case "FLOAT", "float":
+		return FloatType, nil
+	case "BOOL", "bool":
+		return BoolType, nil
+	case "DATE", "date":
+		return DateType, nil
+	case "DATETIME", "datetime":
+		return DateTimeType, nil
+	case "BINARY", "binary":
+		return BinaryType, nil
+	case "UUID", "uuid":
+		return UUIDType, nil
+	case "JSON", "json":
+		return JSONType, nil
+	case "VARCHAR", "varchar":
+		return VarcharType, nil
+	default:
+		return 0, fmt.Errorf("unsupported field type: %s", fieldType)
+	}
 }
 
 // Field represents a schema field for a table, including type and validation metadata.

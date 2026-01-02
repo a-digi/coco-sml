@@ -143,43 +143,31 @@ func ParseTableSQL(query string) (*model.Table, error) {
 	}
 	fields := []model.Field{}
 	for {
+
 		if tokens[pos].Type == TokenRParen {
 			pos++
 			break
 		}
+
 		if tokens[pos].Type != TokenIdent {
 			return nil, errors.New("expected field name")
 		}
+
 		fieldName := tokens[pos].Value
 		pos++
 		if tokens[pos].Type != TokenIdent {
 			return nil, errors.New("expected field type")
 		}
+
 		fieldType := tokens[pos].Value
 		pos++
+
 		var dt model.DataType
-		switch fieldType {
-		case "INT", "int":
-			dt = model.IntType
-		case "FLOAT", "float":
-			dt = model.FloatType
-		case "BOOL", "bool":
-			dt = model.BoolType
-		case "DATE", "date":
-			dt = model.DateType
-		case "DATETIME", "datetime":
-			dt = model.DateTimeType
-		case "BINARY", "binary":
-			dt = model.BinaryType
-		case "UUID", "uuid":
-			dt = model.UUIDType
-		case "JSON", "json":
-			dt = model.JSONType
-		case "VARCHAR", "varchar":
-			dt = model.VarcharType
-		default:
-			return nil, fmt.Errorf("unsupported field type: %s", fieldType)
+		dt, err := model.ParseDataType(fieldType)
+		if err != nil {
+			return nil, err
 		}
+
 		// NOT NULL Unterstützung
 		nullable := true
 		if tokens[pos].Type == TokenIdent && tokens[pos].Value == "NOT" {

@@ -58,29 +58,13 @@ func (dt *DataType) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &s); err != nil {
 		return err
 	}
-	switch s {
-	// case "string": entfernt
-	case "int":
+	dType, err := ParseDataType(s)
+	if err != nil {
 		*dt = IntType
-	case "float":
-		*dt = FloatType
-	case "bool":
-		*dt = BoolType
-	case "date":
-		*dt = DateType
-	case "datetime":
-		*dt = DateTimeType
-	case "binary":
-		*dt = BinaryType
-	case "uuid":
-		*dt = UUIDType
-	case "json":
-		*dt = JSONType
-	case "varchar":
-		*dt = VarcharType
-	default:
-		*dt = IntType
+		return nil
 	}
+
+	*dt = dType
 	return nil
 }
 
@@ -103,6 +87,7 @@ func ParseDataType(fieldType string) (DataType, error) {
 	if dt, ok := typeMap[fieldType]; ok {
 		return dt, nil
 	}
+
 	return 0, fmt.Errorf("unsupported field type: %s", fieldType)
 }
 

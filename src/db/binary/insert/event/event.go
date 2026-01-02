@@ -3,31 +3,26 @@ package event
 import (
     "encoding/binary"
     "fmt"
+    "github.com/a-digi/coco-sml/src/db/binary/model"
     "io"
     "os"
     "sync"
     "time"
 )
 
-// InsertEvent represents a single insert event with metadata
-// Payload must be a raw SQL string (e.g., an INSERT statement or SQL row data)
-type InsertEvent struct {
-    Table     string    // Table name
-    Payload   string    // Raw SQL string for the insert operation
-    Timestamp time.Time // Event timestamp
-}
-
 // Internal event queue for insert events
 var (
-    eventQueue chan InsertEvent
+    eventQueue chan model.InsertEvent
+    insertTableQueue chan model.InsertEvent // Channel for table inserts
     once       sync.Once
     fileWriteMutex sync.Mutex // Ensures race condition safety for file writes
 )
 
-// InitializeQueue sets up the internal event queue
+// InitializeQueue sets up the internal event queue and insert table queue
 func InitializeQueue(bufferSize int) {
     once.Do(func() {
-        eventQueue = make(chan InsertEvent, bufferSize)
+        eventQueue = make(chan model.InsertEvent, bufferSize)
+        insertTableQueue = make(chan model.InsertEvent, bufferSize)
     })
 }
 
@@ -35,7 +30,7 @@ func InitializeQueue(bufferSize int) {
 // The payload must be a valid SQL string
 func EnqueueInsert(table string, payload string) error {
     // TODO: Add SQL string validation if needed
-    event := InsertEvent{
+    event := model.InsertEvent{
         Table:     table,
         Payload:   payload, // Must be a SQL string
         Timestamp: time.Now(),
@@ -54,7 +49,7 @@ type Config struct {
 // WriteEventToFile appends an event to the table-specific event file in a length-prefixed binary format
 // Format: [tableLen][table][payloadLen][payload][timestamp]
 // Each table has its own event file: <table>_events
-func WriteEventToFile(event InsertEvent, cfg Config) error {
+func WriteEventToFile(event model.InsertEvent, cfg Config) error {
     eventFilePath := fmt.Sprintf("%s/%s_events", cfg.EventFolderPath, event.Table)
     fileWriteMutex.Lock()
     defer fileWriteMutex.Unlock()
@@ -94,8 +89,7 @@ func WriteEventToFile(event InsertEvent, cfg Config) error {
 }
 
 // ReadNextEventFromFile reads the next InsertEvent from the event file (for demonstration/testing)
-func ReadNextEventFromFile(r io.Reader) (*InsertEvent, error) {
-
+func ReadNextEventFromFile(r io.Reader) (*model.InsertEvent, error) {
     var tableLen uint32
     if err := binary.Read(r, binary.LittleEndian, &tableLen); err != nil {
         return nil, err
@@ -119,7 +113,7 @@ func ReadNextEventFromFile(r io.Reader) (*InsertEvent, error) {
     if err := binary.Read(r, binary.LittleEndian, &timestamp); err != nil {
         return nil, err
     }
-    return &InsertEvent{
+    return &model.InsertEvent{
         Table:     string(tableBytes),
         Payload:   string(payloadBytes),
         Timestamp: time.Unix(0, timestamp),
@@ -131,16 +125,21 @@ func ReadNextEventFromFile(r io.Reader) (*InsertEvent, error) {
 func StartEventConsumer(cfg Config) {
     go func() {
         for event := range eventQueue {
-            // Write event to file using dynamic path from config
             err := WriteEventToFile(event, cfg)
             if err != nil {
                 // Log error, optionally retry or handle
+                fmt.Printf("Error writing event to file: %v\n", err)
                 continue
             }
-            // TODO: Add logic to process event and insert into DB
-            // e.g., call InsertToTable(event)
+            // Send event to insertTableQueue for table insert
+            insertTableQueue <- event
         }
     }()
+}
+
+// GetInsertTableQueue exposes the insertTableQueue channel for external consumers
+func GetInsertTableQueue() chan model.InsertEvent {
+    return insertTableQueue
 }
 
 // Offset file helpers for tracking processed events
@@ -184,7 +183,7 @@ func WriteLastProcessedOffset(cfg Config, table string, offset int64) error {
 }
 
 // ProcessEventsFromFile processes unprocessed events from the event file using offset tracking
-func ProcessEventsFromFile(cfg Config, table string, processFunc func(event *InsertEvent) error) error {
+func ProcessEventsFromFile(cfg Config, table string, processFunc func(event *model.InsertEvent) error) error {
     eventFilePath := fmt.Sprintf("%s/%s_events", cfg.EventFolderPath, table)
     offset, err := ReadLastProcessedOffset(cfg, table)
     if err != nil {
@@ -203,7 +202,6 @@ func ProcessEventsFromFile(cfg Config, table string, processFunc func(event *Ins
     }
 
     for {
-        currOffset, _ := f.Seek(0, io.SeekCurrent)
         event, err := ReadNextEventFromFile(f)
         if err == io.EOF {
             break

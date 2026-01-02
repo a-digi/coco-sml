@@ -16,6 +16,9 @@ const (
 	TokenCreate    = "CREATE"
 	TokenTable     = "TABLE"
 	TokenSelect    = "SELECT"
+	TokenInsert    = "INSERT"
+	TokenInto      = "INTO"
+	TokenValues    = "VALUES"
 	TokenFrom      = "FROM"
 	TokenWhere     = "WHERE"
 	TokenAnd       = "AND"
@@ -32,6 +35,7 @@ const (
 	TokenRParen    = ")"
 	TokenSemicolon = ";"
 	TokenString    = "STRING"
+	TokenNumber    = "NUMBER"
 	TokenEOF       = "EOF"
 	TokenUnknown   = "UNKNOWN"
 	TokenLimit     = "LIMIT"
@@ -109,6 +113,17 @@ func Lexer(input string) []LexerToken {
 			tokens = append(tokens, LexerToken{Type: TokenString, Value: val})
 			continue
 		}
+		// Handle numbers (integer/float)
+		if unicode.IsDigit(r) {
+			start := pos
+			next()
+			for unicode.IsDigit(peek()) || peek() == '.' {
+				next()
+			}
+			val := string(runes[start:pos])
+			tokens = append(tokens, LexerToken{Type: TokenNumber, Value: val})
+			continue
+		}
 		// Handle operators
 		if r == '=' {
 			next()
@@ -147,7 +162,7 @@ func Lexer(input string) []LexerToken {
 			for unicode.IsLetter(peek()) || unicode.IsDigit(peek()) || peek() == '_' {
 				next()
 			}
-			val := string(runes[start:pos]) // FIX: use start:pos, not start-1:pos
+			val := string(runes[start:pos])
 			upper := strings.ToUpper(val)
 			switch upper {
 			case "CREATE":
@@ -156,6 +171,12 @@ func Lexer(input string) []LexerToken {
 				tokens = append(tokens, LexerToken{Type: TokenTable, Value: val})
 			case "SELECT":
 				tokens = append(tokens, LexerToken{Type: TokenSelect, Value: val})
+			case "INSERT":
+				tokens = append(tokens, LexerToken{Type: TokenInsert, Value: val})
+			case "INTO":
+				tokens = append(tokens, LexerToken{Type: TokenInto, Value: val})
+			case "VALUES":
+				tokens = append(tokens, LexerToken{Type: TokenValues, Value: val})
 			case "FROM":
 				tokens = append(tokens, LexerToken{Type: TokenFrom, Value: val})
 			case "WHERE":

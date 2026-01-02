@@ -182,10 +182,19 @@ func ParseTableSQL(query string) (*model.Table, error) {
 		default:
 			return nil, fmt.Errorf("unsupported field type: %s", fieldType)
 		}
+		// NOT NULL Unterstützung
+		nullable := true
+		if tokens[pos].Type == TokenIdent && tokens[pos].Value == "NOT" {
+			pos++
+			if tokens[pos].Type == TokenIdent && tokens[pos].Value == "NULL" {
+				nullable = false
+				pos++
+			}
+		}
 		fields = append(fields, model.Field{
 			Name:     fieldName,
 			DataType: dt,
-			Required: false,
+			Nullable: nullable,
 		})
 		if tokens[pos].Type == TokenComma {
 			pos++

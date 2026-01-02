@@ -90,7 +90,7 @@ type Field struct {
 	DataType     DataType    `json:"dataType"`
 	MinLength    int         `json:"minLength"`
 	MaxLength    int         `json:"maxLength"`
-	Required     bool        `json:"required"`
+	Nullable     bool        `json:"nullable"`
 	DefaultValue interface{} `json:"defaultValue,omitempty"`
 }
 

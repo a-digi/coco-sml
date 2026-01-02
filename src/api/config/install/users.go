@@ -17,8 +17,8 @@ func SetupUserTable(server *binary.Server) {
 	// Define the user table schema as a SQL string
 	sql := `CREATE TABLE user (
 		id UUID,
-		username VARCHAR,
-		password VARCHAR,
+		username VARCHAR NOT NULL,
+		password VARCHAR NOT NULL,
 		createdAt DATETIME,
 		isActive BOOL
 	);`
@@ -45,9 +45,9 @@ func SetupRootUserTable(server *binary.Server) {
 	// Define the admin_user table schema as a SQL string
 	sql := `CREATE TABLE root_user (
 		id UUID,
-		username VARCHAR,
-		password VARCHAR,
-		email VARCHAR,
+		username VARCHAR NOT NULL,
+		password VARCHAR NOT NULL,
+		email VARCHAR NOT NULL,
 		createdAt DATETIME,
 		isActive BOOL
 	);`

@@ -3,6 +3,7 @@ package model
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 )
@@ -84,10 +85,14 @@ func ParseDataType(fieldType string) (DataType, error) {
 	if strings.HasPrefix(fieldType, "varchar(") && strings.HasSuffix(fieldType, ")") {
 		numStr := fieldType[len("varchar(") : len(fieldType)-1]
 		if _, err := fmt.Sscanf(numStr, "%d", new(int)); err == nil && numStr != "" {
+			log.Printf("[ParseDataType] Detected varchar with length: %s", numStr)
 			return VarcharType, nil
+		} else {
+			log.Printf("[ParseDataType] Invalid varchar length: %s", numStr)
 		}
 	}
 
+	log.Printf("[ParseDataType] Unsupported field type: %s", fieldType)
 	return 0, fmt.Errorf("unsupported field type: %s", fieldType)
 }
 

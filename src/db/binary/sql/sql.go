@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/a-digi/coco-sml/src/db/binary/model"
+	"regexp"
 )
 
 // SQLQuery represents a parsed SQL query (SELECT, INSERT, UPDATE, DELETE).
@@ -143,32 +144,50 @@ func ParseTableSQL(query string) (*model.Table, error) {
 	}
 	fields := []model.Field{}
 	for {
-
 		if tokens[pos].Type == TokenRParen {
 			pos++
 			break
 		}
-
 		if tokens[pos].Type != TokenIdent {
 			return nil, errors.New("expected field name")
 		}
-
 		fieldName := tokens[pos].Value
 		pos++
 		if tokens[pos].Type != TokenIdent {
 			return nil, errors.New("expected field type")
 		}
-
 		fieldType := tokens[pos].Value
 		pos++
-
 		var dt model.DataType
 		dt, err := model.ParseDataType(fieldType)
 		if err != nil {
 			return nil, err
 		}
-
-		// NOT NULL Unterstützung
+		maxLength := 0
+		// Extrahiere die Länge für VARCHAR mit Regex aus den nächsten Tokens
+		if dt == model.VarcharType {
+			// Baue den Typ-String aus allen Tokens nach VARCHAR bis zur schließenden Klammer zusammen
+			typeStr := fieldType
+			tempPos := pos
+			if tempPos < len(tokens) && tokens[tempPos].Type == TokenLParen {
+				typeStr += tokens[tempPos].Value
+				tempPos++
+				for tempPos < len(tokens) && tokens[tempPos].Type != TokenRParen {
+					typeStr += tokens[tempPos].Value
+					tempPos++
+				}
+				if tempPos < len(tokens) && tokens[tempPos].Type == TokenRParen {
+					typeStr += tokens[tempPos].Value
+					tempPos++
+				}
+			}
+			varcharRegex := regexp.MustCompile(`(?i)varchar\s*\((\d+)\)`)
+			match := varcharRegex.FindStringSubmatch(typeStr)
+			if len(match) == 2 {
+				fmt.Sscanf(match[1], "%d", &maxLength)
+				pos = tempPos
+			}
+		}
 		nullable := true
 		if tokens[pos].Type == TokenIdent && tokens[pos].Value == "NOT" {
 			pos++
@@ -180,6 +199,7 @@ func ParseTableSQL(query string) (*model.Table, error) {
 		fields = append(fields, model.Field{
 			Name:     fieldName,
 			DataType: dt,
+			MaxLength: maxLength,
 			Nullable: nullable,
 		})
 		if tokens[pos].Type == TokenComma {

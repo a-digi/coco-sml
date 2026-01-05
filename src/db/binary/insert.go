@@ -1,10 +1,8 @@
 package binary
 
 import (
-	"github.com/a-digi/coco-sml/src/db/binary/insert/event"
-	"github.com/a-digi/coco-sml/src/db/binary/model"
 	"github.com/a-digi/coco-sml/src/db/binary/sql"
-	"time"
+	"github.com/a-digi/coco-sml/src/db/binary/insert"
 )
 
 /*
@@ -37,13 +35,7 @@ func Insert(sqlString string) Result {
 		return ResultError("insert", nil)
 	}
 
-	evt := model.InsertEvent{
-		Table:     parsed.Table,
-		Payload:   sqlString,
-		Timestamp: time.Now(),
-	}
-
-	err = event.EnqueueInsert(evt.Table, evt.Payload)
+	err = insert.InsertToTable(parsed)
 	if err != nil {
 		return ResultError("insert", nil)
 	}
